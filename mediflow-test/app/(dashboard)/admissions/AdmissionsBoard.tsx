@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { AdmissionRow } from "../../../lib/data/queries";
-import type { ReadinessStatus } from "../../../lib/data/types";
 
 export function AdmissionsBoard({ rows }: { rows: AdmissionRow[] }) {
   const [query, setQuery] = useState("");

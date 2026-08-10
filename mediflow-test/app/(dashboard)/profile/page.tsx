@@ -338,11 +338,43 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Appearance & Theme Card */}
+          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
+            <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">Appearance Theme</h3>
+            <div className="flex items-center space-x-2 text-xs">
+              {(["light", "dark", "system"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTheme(t)}
+                  className={`flex-1 py-2 rounded-xl font-semibold capitalize border transition-all ${
+                    theme === t
+                      ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* AI Preferences Card */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
             <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">✨ AI Preferences</h3>
 
             <div className="space-y-3 text-xs">
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
+                <span className="font-bold text-slate-700">Enable AI Assistant</span>
+                <button
+                  type="button"
+                  onClick={() => setAiAssistantEnabled(!aiAssistantEnabled)}
+                  className={`w-10 h-5 rounded-full transition-colors relative ${aiAssistantEnabled ? "bg-blue-600" : "bg-slate-300"}`}
+                >
+                  <span className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition-transform ${aiAssistantEnabled ? "right-0.5" : "left-0.5"}`} />
+                </button>
+              </div>
+
               <div>
                 <label className="font-bold text-slate-700 block mb-1">AI Response Style</label>
                 <select

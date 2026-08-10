@@ -96,7 +96,8 @@ CURRENT HOSPITAL OPERATIONAL CONTEXT:
     }
 
     return NextResponse.json({ reply, provider: "context-engine" });
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || "Failed to process AI response" }, { status: 500 });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to process AI response";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

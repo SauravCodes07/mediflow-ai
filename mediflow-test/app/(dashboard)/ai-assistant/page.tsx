@@ -43,7 +43,7 @@ export default function AIAssistantPage() {
     if (!text.trim() || loading) return;
 
     const timeStr = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    setMessages((prev) => [...prev, { id: `usr_${Date.now()}`, sender: "user", text: text.trim(), timestamp: timeStr }]);
+    setMessages((prev) => [...prev, { id: `usr_${messages.length + 1}`, sender: "user", text: text.trim(), timestamp: timeStr }]);
     if (!queryText) setInput("");
     setLoading(true);
 
@@ -57,7 +57,7 @@ export default function AIAssistantPage() {
       setMessages((prev) => [
         ...prev,
         {
-          id: `ast_${Date.now()}`,
+          id: `ast_${messages.length + 2}`,
           sender: "assistant",
           text: data.reply || "Sorry, I could not process your request.",
           provider: data.provider,
@@ -68,7 +68,7 @@ export default function AIAssistantPage() {
       setMessages((prev) => [
         ...prev,
         {
-          id: `err_${Date.now()}`,
+          id: `err_${messages.length + 2}`,
           sender: "assistant",
           text: "⚠ **Unable to generate response**\n\nFailed to connect to the Mediflow-AI engine. Please verify your network connection and retry.",
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),

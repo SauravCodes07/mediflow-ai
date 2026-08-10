@@ -21,8 +21,9 @@ export default function SignupPage() {
     try {
       await signup(email, password, name);
       router.push("/command-center");
-    } catch (err: any) {
-      setError(err?.message || "Failed to create account.");
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      setError(e?.message || "Failed to create account.");
       setLoading(false);
     }
   };
@@ -32,8 +33,9 @@ export default function SignupPage() {
     try {
       await loginWithGoogle();
       router.push("/command-center");
-    } catch (err: any) {
-      setError(err?.message || "Google Sign-In failed.");
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      setError(e?.message || "Google Sign-In failed.");
       setLoading(false);
     }
   };

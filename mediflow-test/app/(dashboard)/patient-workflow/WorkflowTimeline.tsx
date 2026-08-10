@@ -120,7 +120,6 @@ export function WorkflowTimeline({ entries }: { entries: WorkflowTimelineEntry[]
         <div className="space-y-6 relative before:absolute before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200">
           {filtered.map((entry) => {
             const isAlert = entry.type.includes("alert");
-            const isReadiness = entry.type.includes("readiness");
             const isConsent = entry.type.includes("consent");
 
             const dotColor = isAlert
@@ -138,7 +137,7 @@ export function WorkflowTimeline({ entries }: { entries: WorkflowTimelineEntry[]
                       {entry.patientName}
                     </Link>
                     <span className="text-[11px] text-slate-400 font-mono">
-                      {new Date(entry.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      {new Date(entry.occurredAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </span>
                   </div>
                   <div className="text-xs text-slate-700 font-medium">{entry.message}</div>

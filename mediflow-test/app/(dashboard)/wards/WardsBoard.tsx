@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import type { TransferQueueRow, WardOverview } from "../../../lib/data/queries";
 
 interface SelectedBedInfo {
@@ -9,7 +8,6 @@ interface SelectedBedInfo {
   wardName: string;
   status: string;
   patientName?: string | null;
-  mrn?: string | null;
 }
 
 export function WardsBoard({
@@ -28,8 +26,8 @@ export function WardsBoard({
     let blocked = 0;
     for (const w of wards) {
       cap += w.totalBeds;
-      occ += w.occupiedBeds;
-      blocked += w.blockedBedsCount;
+      occ += w.occupied;
+      blocked += w.blocked;
     }
     const pct = cap > 0 ? Math.round((occ / cap) * 100) : 0;
     return { cap, occ, free: cap - occ, blocked, pct };
@@ -69,7 +67,7 @@ export function WardsBoard({
         <h3 className="text-base font-bold text-slate-900">Ward Occupancy Comparison</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {wards.map((ward) => {
-            const occPct = Math.round((ward.occupiedBeds / ward.totalBeds) * 100);
+            const occPct = Math.round((ward.occupied / ward.totalBeds) * 100);
             return (
               <div key={ward.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
                 <div className="flex items-center justify-between text-xs">
@@ -85,8 +83,8 @@ export function WardsBoard({
                   />
                 </div>
                 <div className="text-[11px] text-slate-500 flex justify-between font-medium">
-                  <span>{ward.occupiedBeds} occupied</span>
-                  <span>{ward.totalBeds - ward.occupiedBeds} free</span>
+                  <span>{ward.occupied} occupied</span>
+                  <span>{ward.totalBeds - ward.occupied} free</span>
                 </div>
               </div>
             );
@@ -112,10 +110,10 @@ export function WardsBoard({
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900">{ward.name} Bed Map</h3>
-                <p className="text-xs text-slate-500">{ward.occupiedBeds} of {ward.totalBeds} beds occupied</p>
+                <p className="text-xs text-slate-500">{ward.occupied} of {ward.totalBeds} beds occupied</p>
               </div>
               <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
-                {ward.totalBeds - ward.occupiedBeds} Available
+                {ward.totalBeds - ward.occupied} Available
               </span>
             </div>
 
@@ -142,7 +140,6 @@ export function WardsBoard({
                         wardName: ward.name,
                         status: bed.status,
                         patientName: bed.patientName,
-                        mrn: bed.patientMrn,
                       })
                     }
                     className={`p-3 rounded-2xl border text-left flex flex-col justify-between space-y-2 transition-all transform hover:-translate-y-0.5 cursor-pointer ${tileClass}`}
@@ -167,7 +164,7 @@ export function WardsBoard({
         ))}
       </div>
 
-      {/* Bed Detail Modal/Drawer */}
+      {/* Bed Detail Modal */}
       {selectedBed && (
         <div
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
@@ -200,12 +197,6 @@ export function WardsBoard({
                   <span className="text-slate-500">Occupant:</span>
                   <span className="font-bold text-slate-900">{selectedBed.patientName || "None (Available)"}</span>
                 </div>
-                {selectedBed.mrn && (
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">MRN:</span>
-                    <span className="font-mono text-slate-900">{selectedBed.mrn}</span>
-                  </div>
-                )}
                 <div className="flex justify-between">
                   <span className="text-slate-500">Sanitization:</span>
                   <span className="font-bold text-emerald-600">Passed / Cleared</span>

@@ -61,7 +61,7 @@ export function AIChatDrawer() {
 
     const timeStr = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     const userMsg: Message = {
-      id: `usr_${Date.now()}`,
+      id: `usr_${messages.length + 1}`,
       sender: "user",
       text: textToSend.trim(),
       timestamp: timeStr,
@@ -80,7 +80,7 @@ export function AIChatDrawer() {
       });
       const data = await res.json();
       const assistantMsg: Message = {
-        id: `ast_${Date.now()}`,
+        id: `ast_${messages.length + 2}`,
         sender: "assistant",
         text: data.reply || "Sorry, I could not process your request.",
         provider: data.provider,
@@ -91,7 +91,7 @@ export function AIChatDrawer() {
       setMessages((prev) => [
         ...prev,
         {
-          id: `err_${Date.now()}`,
+          id: `err_${messages.length + 2}`,
           sender: "assistant",
           text: "⚠ **Unable to generate response**\n\nSomething went wrong while contacting Mediflow-AI engine. Please check your connection and try again.",
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),

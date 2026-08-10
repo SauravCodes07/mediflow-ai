@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { updateProfile } from "firebase/auth";
 import {
   getFirebaseAuth,
   googleProvider,
@@ -72,10 +73,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const signup = async (email: string, password: string, _name: string) => {
+  const signup = async (email: string, password: string, name: string) => {
     const auth = getFirebaseAuth();
     const res = await createUserWithEmailAndPassword(auth, email, password);
     if (res.user) {
+      if (name) {
+        await updateProfile(res.user, { displayName: name });
+      }
       await sendEmailVerification(res.user);
     }
   };

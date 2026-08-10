@@ -39,8 +39,9 @@ function LoginForm() {
     try {
       await login(email, password);
       router.push(redirectTarget);
-    } catch (err: any) {
-      setError(formatFirebaseError(err?.code || "", err?.message || "Failed to sign in. Please check your credentials."));
+    } catch (err: unknown) {
+      const e = err as { code?: string; message?: string };
+      setError(formatFirebaseError(e?.code || "", e?.message || "Failed to sign in. Please check your credentials."));
       setLoading(false);
     }
   };
@@ -51,8 +52,9 @@ function LoginForm() {
     try {
       await loginWithGoogle();
       router.push(redirectTarget);
-    } catch (err: any) {
-      setError(formatFirebaseError(err?.code || "", err?.message || "Google Sign-In failed."));
+    } catch (err: unknown) {
+      const e = err as { code?: string; message?: string };
+      setError(formatFirebaseError(e?.code || "", e?.message || "Google Sign-In failed."));
       setLoading(false);
     }
   };
