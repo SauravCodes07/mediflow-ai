@@ -1,61 +1,74 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { Button } from "../../components/ui/Button";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
 export default function SignupPage() {
+  const router = useRouter();
+  const { signup, loginWithGoogle } = useAuth();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      await signup(email, password, name);
+      router.push("/command-center");
+    } catch (err: any) {
+      setError(err?.message || "Failed to create account.");
+      setLoading(false);
+    }
+  };
+
+  const handleGoogle = async () => {
+    setLoading(true);
+    try {
+      await loginWithGoogle();
+      router.push("/command-center");
+    } catch (err: any) {
+      setError(err?.message || "Google Sign-In failed.");
+      setLoading(false);
+    }
+  };
+
   return (
-    <form className="stack auth-dark" style={{ gap: "var(--space-5)" }}>
+    <form onSubmit={handleSubmit} className="stack auth-dark" style={{ gap: "var(--space-4)" }}>
       <div className="stack" style={{ gap: "var(--space-1)" }}>
-        <h1 className="text-section-title">Create account</h1>
-        <p className="text-meta">Set up secure access for your hospital team.</p>
+        <h1 className="text-section-title">Create an account</h1>
+        <p className="text-meta">Register your clinical user account on Mediflow-AI.</p>
       </div>
 
-      <div className="grid grid-2" style={{ gap: "var(--space-4)" }}>
-        <div className="field">
-          <label className="text-label" htmlFor="firstName">First name</label>
-          <input id="firstName" className="input" placeholder="Ada" />
-        </div>
-        <div className="field">
-          <label className="text-label" htmlFor="lastName">Last name</label>
-          <input id="lastName" className="input" placeholder="Lovelace" />
-        </div>
+      {error && <div className="badge badge-critical py-2 px-3 text-xs">{error}</div>}
+
+      <div className="field">
+        <label className="text-label" htmlFor="name">Full Name</label>
+        <input id="name" className="input" placeholder="Dr. Anika Rao" value={name} onChange={(e) => setName(e.target.value)} required />
       </div>
 
       <div className="field">
-        <label className="text-label" htmlFor="hospital">Hospital / organization</label>
-        <input id="hospital" className="input" placeholder="Demo General Hospital" />
+        <label className="text-label" htmlFor="email">Work Email</label>
+        <input id="email" type="email" className="input" placeholder="you@hospital.org" value={email} onChange={(e) => setEmail(e.target.value)} required />
       </div>
 
       <div className="field">
-        <label className="text-label" htmlFor="email">Work email</label>
-        <input id="email" type="email" className="input" placeholder="you@hospital.org" autoComplete="email" />
+        <label className="text-label" htmlFor="password">Password</label>
+        <input id="password" type="password" className="input" placeholder="••••••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
       </div>
 
-      <div className="grid grid-2" style={{ gap: "var(--space-4)" }}>
-        <div className="field">
-          <label className="text-label" htmlFor="password">Password</label>
-          <input id="password" type="password" className="input" placeholder="At least 8 characters" autoComplete="new-password" />
-        </div>
-        <div className="field">
-          <label className="text-label" htmlFor="confirmPassword">Confirm password</label>
-          <input id="confirmPassword" type="password" className="input" placeholder="Repeat password" autoComplete="new-password" />
-        </div>
-      </div>
+      <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+        {loading ? "Creating Account..." : "Create Account"}
+      </button>
 
-      <label className="checkbox-row">
-        <input type="checkbox" /> I agree to the terms of service and privacy policy
-      </label>
-
-      <Button type="submit" block disabled>Create account</Button>
-
-      <div className="row" style={{ gap: "var(--space-3)" }}>
-        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.15)" }} />
-        <span className="text-meta">or</span>
-        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.15)" }} />
-      </div>
-
-      <Button type="button" variant="secondary" block disabled title="Enabled in the final Google Sign-In integration step">
-        <span aria-hidden>G</span> Continue with Google
-      </Button>
+      <button type="button" className="btn btn-secondary btn-block" onClick={handleGoogle} disabled={loading}>
+        <span aria-hidden>G</span> Sign up with Google
+      </button>
 
       <p className="text-meta" style={{ textAlign: "center" }}>
         Already have an account? <Link href="/login" className="auth-link">Sign in</Link>

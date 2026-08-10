@@ -1,5 +1,7 @@
 "use client";
 
+import { NotificationCenter } from "./NotificationCenter";
+
 export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   return (
     <header className="topbar">
@@ -16,9 +18,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
         <a href="/alerts" className="icon-btn" title="Emergency / Critical Alerts" style={{ color: "var(--color-critical)", borderColor: "var(--color-critical-bg)" }}>
           ⚠
         </a>
-        <a href="/notifications" className="icon-btn" title="Notifications">
-          🔔
-        </a>
+        <NotificationCenter />
         <a href="/profile" className="avatar" title="Profile">
           DU
         </a>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Sidebar } from "../components/layout/Sidebar";
 import { Topbar } from "../components/layout/Topbar";
+import { AIChatDrawer } from "../components/AIChatDrawer";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -21,6 +22,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Topbar onMenuClick={() => setMobileOpen((v) => !v)} />
         <main className="content">{children}</main>
       </div>
+      <AIChatDrawer />
     </div>
   );
 }

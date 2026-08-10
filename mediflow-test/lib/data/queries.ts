@@ -25,6 +25,10 @@ import {
   DEMO_PROCEDURES,
   DEMO_INSTRUMENT_PACKS,
   DEMO_STERILIZATION_BATCHES,
+  DEMO_ALERTS,
+  DEMO_NOTIFICATIONS,
+  DEMO_AUDIT_LOGS,
+  DEMO_PROFILES,
 } from "./seed";
 import type {
   Admission,
@@ -542,3 +546,215 @@ export async function getCSSDOverview(
     problemPacks,
   });
 }
+
+/* ------------------------------------------------------------------ */
+/* Step 15 — Alerts, Notifications and Emergency Operations             */
+/* ------------------------------------------------------------------ */
+
+export interface AlertRow {
+  id: string;
+  severity: "critical" | "warning" | "info";
+  status: "open" | "acknowledged" | "resolved" | "overdue";
+  title: string;
+  description: string;
+  sourceEntityType: string;
+  sourceEntityId: string;
+  assignedProfileName: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
+}
+
+export async function getAlerts(orgId: string): Promise<AlertRow[]> {
+  const rows: AlertRow[] = DEMO_ALERTS.filter((a) => a.orgId === orgId).map((a) => {
+    const profile = a.assignedProfileId ? DEMO_PROFILES.find((p) => p.id === a.assignedProfileId) : null;
+    return {
+      id: a.id,
+      severity: a.severity,
+      status: a.status,
+      title: a.title,
+      description: a.description,
+      sourceEntityType: a.sourceEntityType,
+      sourceEntityId: a.sourceEntityId,
+      assignedProfileName: profile?.name ?? null,
+      createdAt: a.createdAt,
+      resolvedAt: a.resolvedAt,
+    };
+  });
+  rows.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  return simulatedLatency(rows);
+}
+
+export async function updateAlertStatus(
+  orgId: string,
+  alertId: string,
+  newStatus: "acknowledged" | "resolved"
+): Promise<AlertRow | null> {
+  const alert = DEMO_ALERTS.find((a) => a.id === alertId && a.orgId === orgId);
+  if (!alert) return simulatedLatency(null);
+
+  alert.status = newStatus;
+  if (newStatus === "resolved") {
+    alert.resolvedAt = new Date().toISOString();
+  }
+
+  // Record audit log
+  DEMO_AUDIT_LOGS.unshift({
+    id: `aud_${Date.now()}`,
+    orgId,
+    actorProfileId: "prf_001",
+    action: `Alert ${newStatus.toUpperCase()}: ${alert.title}`,
+    entityType: "alert",
+    entityId: alert.id,
+    occurredAt: new Date().toISOString(),
+  });
+
+  const profile = alert.assignedProfileId ? DEMO_PROFILES.find((p) => p.id === alert.assignedProfileId) : null;
+  return simulatedLatency({
+    id: alert.id,
+    severity: alert.severity,
+    status: alert.status,
+    title: alert.title,
+    description: alert.description,
+    sourceEntityType: alert.sourceEntityType,
+    sourceEntityId: alert.sourceEntityId,
+    assignedProfileName: profile?.name ?? null,
+    createdAt: alert.createdAt,
+    resolvedAt: alert.resolvedAt,
+  });
+}
+
+export interface NotificationRow {
+  id: string;
+  title: string;
+  body: string;
+  read: boolean;
+  deepLink: string;
+  createdAt: string;
+}
+
+export async function getNotifications(orgId: string): Promise<NotificationRow[]> {
+  const rows = DEMO_NOTIFICATIONS.filter((n) => n.orgId === orgId).map((n) => ({
+    id: n.id,
+    title: n.title,
+    body: n.body,
+    read: n.read,
+    deepLink: n.deepLink,
+    createdAt: n.createdAt,
+  }));
+  rows.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  return simulatedLatency(rows);
+}
+
+export async function markNotificationRead(orgId: string, notifId: string): Promise<void> {
+  const notif = DEMO_NOTIFICATIONS.find((n) => n.id === notifId && n.orgId === orgId);
+  if (notif) {
+    notif.read = true;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Step 16 — Analytics & Operational Insights                           */
+/* ------------------------------------------------------------------ */
+
+export interface AnalyticsSummary {
+  otUtilizationPct: number;
+  avgTurnoverMinutes: number;
+  admissionsThroughputToday: number;
+  avgReadinessDelayMinutes: number;
+  cssdAvailabilityPct: number;
+  alertResolutionRatePct: number;
+  departmentComparison: { name: string; throughput: number; delayMinutes: number }[];
+  weeklyAdmissions: { day: string; admissions: number; discharges: number }[];
+}
+
+export async function getAnalyticsSummary(orgId: string): Promise<AnalyticsSummary> {
+  const rooms = DEMO_OT_ROOMS.filter((r) => r.orgId === orgId);
+  const activeRooms = rooms.filter((r) => r.status !== "available").length;
+  const otUtilizationPct = rooms.length === 0 ? 0 : Math.round((activeRooms / rooms.length) * 100);
+
+  const packs = DEMO_INSTRUMENT_PACKS.filter((p) => p.orgId === orgId);
+  const availablePacks = packs.filter((p) => p.lifecycle === "available" || p.lifecycle === "in_use").length;
+  const cssdAvailabilityPct = packs.length === 0 ? 0 : Math.round((availablePacks / packs.length) * 100);
+
+  const alerts = DEMO_ALERTS.filter((a) => a.orgId === orgId);
+  const resolvedAlerts = alerts.filter((a) => a.status === "resolved").length;
+  const alertResolutionRatePct = alerts.length === 0 ? 100 : Math.round((resolvedAlerts / alerts.length) * 100);
+
+  return simulatedLatency({
+    otUtilizationPct,
+    avgTurnoverMinutes: 28,
+    admissionsThroughputToday: 18,
+    avgReadinessDelayMinutes: 42,
+    cssdAvailabilityPct,
+    alertResolutionRatePct,
+    departmentComparison: [
+      { name: "General Wards", throughput: 24, delayMinutes: 35 },
+      { name: "Operating Theatre", throughput: 12, delayMinutes: 20 },
+      { name: "Admissions", throughput: 30, delayMinutes: 45 },
+      { name: "CSSD", throughput: 18, delayMinutes: 15 },
+    ],
+    weeklyAdmissions: [
+      { day: "Mon", admissions: 12, discharges: 10 },
+      { day: "Tue", admissions: 19, discharges: 15 },
+      { day: "Wed", admissions: 14, discharges: 12 },
+      { day: "Thu", admissions: 22, discharges: 18 },
+      { day: "Fri", admissions: 25, discharges: 20 },
+      { day: "Sat", admissions: 16, discharges: 14 },
+      { day: "Sun", admissions: 10, discharges: 8 },
+    ],
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Step 18 — Profile, Settings, Admin & Audit Logs                     */
+/* ------------------------------------------------------------------ */
+
+export interface ProfileRow {
+  id: string;
+  name: string;
+  role: string;
+  departmentName: string;
+  active: boolean;
+  createdAt: string;
+}
+
+export async function getProfiles(orgId: string): Promise<ProfileRow[]> {
+  const rows = DEMO_PROFILES.filter((p) => p.orgId === orgId).map((p) => {
+    const dept = p.departmentId ? DEMO_DEPARTMENTS.find((d) => d.id === p.departmentId) : null;
+    return {
+      id: p.id,
+      name: p.name,
+      role: p.role,
+      departmentName: dept?.name ?? "General",
+      active: p.active,
+      createdAt: p.createdAt,
+    };
+  });
+  return simulatedLatency(rows);
+}
+
+export interface AuditLogRow {
+  id: string;
+  actorName: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  occurredAt: string;
+}
+
+export async function getAuditLogs(orgId: string): Promise<AuditLogRow[]> {
+  const rows = DEMO_AUDIT_LOGS.filter((a) => a.orgId === orgId).map((a) => {
+    const actor = a.actorProfileId ? DEMO_PROFILES.find((p) => p.id === a.actorProfileId) : null;
+    return {
+      id: a.id,
+      actorName: actor?.name ?? "System",
+      action: a.action,
+      entityType: a.entityType,
+      entityId: a.entityId,
+      occurredAt: a.occurredAt,
+    };
+  });
+  rows.sort((a, b) => (a.occurredAt < b.occurredAt ? 1 : -1));
+  return simulatedLatency(rows);
+}
+
