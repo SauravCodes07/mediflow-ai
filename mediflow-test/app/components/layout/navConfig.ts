@@ -1,17 +1,16 @@
-export type NavItem = { label: string; href: string };
+export type NavItem = { label: string; href: string; icon?: string };
 export type NavGroup = { label: string; items: NavItem[] };
 
 export const NAV_GROUPS: NavGroup[] = [
   {
-    label: "Overview",
+    label: "COMMAND CENTER",
     items: [
-      { label: "Command Center", href: "/command-center" },
-      { label: "Dashboard", href: "/" },
+      { label: "Dashboard", href: "/dashboard" },
       { label: "Analytics", href: "/analytics" },
     ],
   },
   {
-    label: "Patient Flow",
+    label: "PATIENT FLOW",
     items: [
       { label: "Admissions", href: "/admissions" },
       { label: "Wards", href: "/wards" },
@@ -20,7 +19,7 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: "Operating Theatre",
+    label: "OPERATING THEATRE",
     items: [
       { label: "OT Overview", href: "/ot" },
       { label: "OT Schedule", href: "/ot/schedule" },
@@ -36,7 +35,7 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: "Intelligence",
+    label: "INTELLIGENCE",
     items: [
       { label: "AI Assistant", href: "/ai-assistant" },
       { label: "AI Insights", href: "/ai-insights" },
@@ -44,7 +43,7 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: "Operations",
+    label: "OPERATIONS",
     items: [
       { label: "Alerts", href: "/alerts" },
       { label: "Notifications", href: "/notifications" },
@@ -52,10 +51,9 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: "Administration",
+    label: "ADMINISTRATION",
     items: [
-      { label: "Hospital Admin", href: "/admin/hospital" },
-      { label: "User Admin", href: "/admin/users" },
+      { label: "User Management", href: "/admin/users" },
       { label: "Settings", href: "/settings" },
       { label: "Profile", href: "/profile" },
     ],

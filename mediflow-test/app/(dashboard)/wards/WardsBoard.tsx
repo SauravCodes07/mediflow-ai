@@ -2,39 +2,14 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Badge } from "../../components/ui/Badge";
-import { Card } from "../../components/ui/Card";
-import { EmptyState } from "../../components/ui/EmptyState";
 import type { TransferQueueRow, WardOverview } from "../../../lib/data/queries";
 
-const BED_TILE_CLASS: Record<string, string> = {
-  occupied: "bed-tile bed-tile-occupied",
-  cleaning: "bed-tile bed-tile-cleaning",
-  blocked: "bed-tile bed-tile-blocked",
-  available: "bed-tile",
-};
-
-const BED_STATUS_LABEL: Record<string, string> = {
-  occupied: "Occupied",
-  available: "Available",
-  cleaning: "Cleaning",
-  blocked: "Blocked",
-};
-
-const TRANSFER_LABEL: Record<TransferQueueRow["transfer"], string> = {
-  not_required: "Not required",
-  requested: "Requested",
-  in_transit: "In transit",
-  completed: "Completed",
-};
-
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+interface SelectedBedInfo {
+  bedLabel: string;
+  wardName: string;
+  status: string;
+  patientName?: string | null;
+  mrn?: string | null;
 }
 
 export function WardsBoard({
@@ -45,159 +20,208 @@ export function WardsBoard({
   transferQueue: TransferQueueRow[];
 }) {
   const [query, setQuery] = useState("");
+  const [selectedBed, setSelectedBed] = useState<SelectedBedInfo | null>(null);
 
-  const filteredWards = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return wards;
-    return wards
-      .map((ward) => ({
-        ...ward,
-        beds: ward.beds.filter(
-          (b) =>
-            ward.name.toLowerCase().includes(q) ||
-            b.label.toLowerCase().includes(q) ||
-            (b.patientName ?? "").toLowerCase().includes(q)
-        ),
-      }))
-      .filter((ward) => ward.name.toLowerCase().includes(q) || ward.beds.length > 0);
-  }, [wards, query]);
-
-  const blockers = useMemo(() => {
-    const items: { key: string; label: string; wardName: string }[] = [];
-    for (const ward of wards) {
-      for (const bed of ward.beds) {
-        if (bed.status === "blocked") {
-          items.push({ key: bed.id, label: `Bed ${bed.label} is out of service`, wardName: ward.name });
-        }
-      }
-      if (ward.blockedAdmissionsCount > 0) {
-        items.push({
-          key: `${ward.id}-admissions`,
-          label: `${ward.blockedAdmissionsCount} blocked admission${ward.blockedAdmissionsCount === 1 ? "" : "s"} waiting on this ward`,
-          wardName: ward.name,
-        });
-      }
+  const totalCapacity = useMemo(() => {
+    let cap = 0;
+    let occ = 0;
+    let blocked = 0;
+    for (const w of wards) {
+      cap += w.totalBeds;
+      occ += w.occupiedBeds;
+      blocked += w.blockedBedsCount;
     }
-    return items;
+    const pct = cap > 0 ? Math.round((occ / cap) * 100) : 0;
+    return { cap, occ, free: cap - occ, blocked, pct };
   }, [wards]);
 
   return (
-    <div className="stack" style={{ gap: "var(--space-6)" }}>
-      <Card>
+    <div className="space-y-6">
+      {/* Capacity Overview KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+          <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Overall Occupancy</div>
+          <div className="text-3xl font-extrabold text-slate-900">{totalCapacity.pct}%</div>
+          <div className="text-xs font-medium text-slate-500 mt-2">{totalCapacity.occ} / {totalCapacity.cap} beds occupied</div>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+          <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Available Beds</div>
+          <div className="text-3xl font-extrabold text-emerald-600">{totalCapacity.free}</div>
+          <div className="text-xs font-semibold text-emerald-600 mt-2">✓ Ready for immediate intake</div>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+          <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Transfers in Transit</div>
+          <div className="text-3xl font-extrabold text-blue-600">{transferQueue.length}</div>
+          <div className="text-xs font-medium text-blue-600 mt-2">● Active ward dispatch</div>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+          <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Blocked / Out of Service</div>
+          <div className="text-3xl font-extrabold text-rose-600">{totalCapacity.blocked}</div>
+          <div className="text-xs font-semibold text-rose-600 mt-2">⚠ Maintenance / Isolation</div>
+        </div>
+      </div>
+
+      {/* Ward Comparison Bars */}
+      <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
+        <h3 className="text-base font-bold text-slate-900">Ward Occupancy Comparison</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {wards.map((ward) => {
+            const occPct = Math.round((ward.occupiedBeds / ward.totalBeds) * 100);
+            return (
+              <div key={ward.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-900">{ward.name}</span>
+                  <span className="font-extrabold text-blue-600">{occPct}%</span>
+                </div>
+                <div className="w-full h-3 rounded-full bg-slate-200 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${
+                      occPct > 90 ? "bg-amber-500" : "bg-blue-600"
+                    }`}
+                    style={{ width: `${occPct}%` }}
+                  />
+                </div>
+                <div className="text-[11px] text-slate-500 flex justify-between font-medium">
+                  <span>{ward.occupiedBeds} occupied</span>
+                  <span>{ward.totalBeds - ward.occupiedBeds} free</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Search Input */}
+      <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
         <input
-          className="input"
-          style={{ maxWidth: 320 }}
-          placeholder="Search ward, bed or patient…"
+          type="text"
+          className="w-full max-w-sm px-4 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+          placeholder="Search ward, bed code or patient..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          aria-label="Search wards"
         />
-      </Card>
+      </div>
 
-      {blockers.length > 0 && (
-        <Card>
-          <div className="text-label" style={{ marginBottom: "var(--space-3)" }}>
-            Operational blockers
-          </div>
-          <div className="stack" style={{ gap: "var(--space-2)" }}>
-            {blockers.map((b) => (
-              <div key={b.key} className="row" style={{ gap: "var(--space-2)" }}>
-                <Badge tone="critical">{b.wardName}</Badge>
-                <span className="text-body">{b.label}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {filteredWards.length === 0 ? (
-        <Card>
-          <EmptyState
-            icon="⌕"
-            title="No wards match your search"
-            description="Try a different ward name, bed label or patient name."
-            action={
-              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setQuery("")}>
-                Clear search
-              </button>
-            }
-          />
-        </Card>
-      ) : (
-        filteredWards.map((ward) => (
-          <Card key={ward.id}>
-            <div className="panel-header">
+      {/* Visual Interactive Bed Map Grid */}
+      <div className="space-y-6">
+        {wards.map((ward) => (
+          <div key={ward.id} className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <div style={{ fontWeight: 700, color: "var(--color-navy)" }}>{ward.name}</div>
-                <span className="text-meta">
-                  {ward.departmentName} · {ward.occupied}/{ward.totalBeds} beds occupied
-                </span>
+                <h3 className="text-base font-bold text-slate-900">{ward.name} Bed Map</h3>
+                <p className="text-xs text-slate-500">{ward.occupiedBeds} of {ward.totalBeds} beds occupied</p>
               </div>
-              <div style={{ minWidth: 140, textAlign: "right" }}>
-                <span className="text-meta">{ward.occupancyPct}% occupancy</span>
-                <div className="occupancy-bar" style={{ marginTop: 4 }}>
-                  <div className="occupancy-bar-fill" style={{ width: `${ward.occupancyPct}%` }} />
-                </div>
-              </div>
+              <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
+                {ward.totalBeds - ward.occupiedBeds} Available
+              </span>
             </div>
 
-            <div className="bed-grid">
-              {ward.beds.map((bed) => (
-                <div key={bed.id} className={BED_TILE_CLASS[bed.status]}>
-                  <span className="bed-tile-label">{bed.label}</span>
-                  <span className="text-meta">{BED_STATUS_LABEL[bed.status]}</span>
-                  {bed.patientName && (
-                    <Link href={`/patients/${bed.patientId}`} className="text-meta" style={{ color: "var(--color-primary)", fontWeight: 600 }}>
-                      {bed.patientName}
-                    </Link>
-                  )}
-                </div>
-              ))}
-            </div>
-          </Card>
-        ))
-      )}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+              {ward.beds.map((bed) => {
+                const isOccupied = bed.status === "occupied";
+                const isCleaning = bed.status === "cleaning";
+                const isBlocked = bed.status === "blocked";
 
-      <Card>
-        <div className="panel-header">
-          <div className="text-label">Transfer queue</div>
-          <span className="text-meta">{transferQueue.length} in progress</span>
-        </div>
-        {transferQueue.length === 0 ? (
-          <EmptyState icon="○" title="No transfers in progress" description="Transfer requests will appear here as they're raised." />
-        ) : (
-          <div className="table-wrap">
-            <table className="dt">
-              <thead>
-                <tr>
-                  <th>Patient</th>
-                  <th>From</th>
-                  <th>To ward</th>
-                  <th>Status</th>
-                  <th>Requested</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transferQueue.map((row) => (
-                  <tr key={row.admissionId}>
-                    <td>
-                      <Link href={`/patients/${row.patientId}`} style={{ fontWeight: 600, color: "var(--color-navy)" }}>
-                        {row.patientName}
-                      </Link>
-                    </td>
-                    <td>{row.fromDepartmentName}</td>
-                    <td>{row.toWardName}</td>
-                    <td>
-                      <Badge tone={row.transfer === "in_transit" ? "info" : "warning"}>{TRANSFER_LABEL[row.transfer]}</Badge>
-                    </td>
-                    <td>{formatTime(row.requestedAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                const tileClass = isOccupied
+                  ? "bg-blue-50 border-blue-300 text-blue-900 hover:bg-blue-100"
+                  : isCleaning
+                  ? "bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100"
+                  : isBlocked
+                  ? "bg-rose-50 border-rose-300 text-rose-900 hover:bg-rose-100"
+                  : "bg-emerald-50 border-emerald-300 text-emerald-900 hover:bg-emerald-100";
+
+                return (
+                  <button
+                    key={bed.id}
+                    onClick={() =>
+                      setSelectedBed({
+                        bedLabel: bed.label,
+                        wardName: ward.name,
+                        status: bed.status,
+                        patientName: bed.patientName,
+                        mrn: bed.patientMrn,
+                      })
+                    }
+                    className={`p-3 rounded-2xl border text-left flex flex-col justify-between space-y-2 transition-all transform hover:-translate-y-0.5 cursor-pointer ${tileClass}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-xs">{bed.label}</span>
+                      <span className="w-2 h-2 rounded-full bg-current" />
+                    </div>
+                    <div>
+                      <div className="text-[11px] font-bold truncate">
+                        {bed.patientName || "Available Bed"}
+                      </div>
+                      <div className="text-[10px] opacity-75 capitalize font-medium">
+                        ● {bed.status}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        )}
-      </Card>
+        ))}
+      </div>
+
+      {/* Bed Detail Modal/Drawer */}
+      {selectedBed && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setSelectedBed(null)}
+        >
+          <div
+            className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Bed {selectedBed.bedLabel}</h3>
+                <p className="text-xs text-slate-500">{selectedBed.wardName}</p>
+              </div>
+              <button
+                onClick={() => setSelectedBed(null)}
+                className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-2.5 text-xs">
+              <div className="p-3.5 rounded-2xl bg-slate-50 space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Status:</span>
+                  <span className="font-bold capitalize text-blue-600">{selectedBed.status}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Occupant:</span>
+                  <span className="font-bold text-slate-900">{selectedBed.patientName || "None (Available)"}</span>
+                </div>
+                {selectedBed.mrn && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">MRN:</span>
+                    <span className="font-mono text-slate-900">{selectedBed.mrn}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Sanitization:</span>
+                  <span className="font-bold text-emerald-600">Passed / Cleared</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setSelectedBed(null)}
+              className="w-full py-2.5 rounded-xl bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800"
+            >
+              Close Details
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

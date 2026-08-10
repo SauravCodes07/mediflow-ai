@@ -1,12 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
-export default function LoginPage() {
+function formatFirebaseError(code: string, fallback: string): string {
+  if (code.includes("auth/unauthorized-domain")) {
+    return "Domain not authorized in Firebase Auth settings. Please add your domain to Firebase console.";
+  }
+  if (code.includes("auth/invalid-credential") || code.includes("auth/wrong-password") || code.includes("auth/user-not-found")) {
+    return "Invalid work email or password. Please verify your credentials.";
+  }
+  if (code.includes("auth/email-already-in-use")) {
+    return "This email is already registered. Please sign in instead.";
+  }
+  if (code.includes("auth/network-request-failed")) {
+    return "Network error. Please check your internet connection.";
+  }
+  return fallback;
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTarget = searchParams.get("redirect") || "/dashboard";
+
   const { login, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,9 +38,9 @@ export default function LoginPage() {
     setError(null);
     try {
       await login(email, password);
-      router.push("/command-center");
+      router.push(redirectTarget);
     } catch (err: any) {
-      setError(err?.message || "Failed to sign in. Please check your credentials.");
+      setError(formatFirebaseError(err?.code || "", err?.message || "Failed to sign in. Please check your credentials."));
       setLoading(false);
     }
   };
@@ -31,9 +50,9 @@ export default function LoginPage() {
     setError(null);
     try {
       await loginWithGoogle();
-      router.push("/command-center");
+      router.push(redirectTarget);
     } catch (err: any) {
-      setError(err?.message || "Google Sign-In failed.");
+      setError(formatFirebaseError(err?.code || "", err?.message || "Google Sign-In failed."));
       setLoading(false);
     }
   };
@@ -98,9 +117,20 @@ export default function LoginPage() {
         <span aria-hidden>G</span> Continue with Google
       </button>
 
-      <p className="text-meta" style={{ textAlign: "center" }}>
-        Don&apos;t have an account? <Link href="/signup" className="auth-link">Create one</Link>
-      </p>
+      <div className="text-center text-xs text-slate-400 mt-2">
+        Don&apos;t have an account?{" "}
+        <Link href={`/signup?redirect=${encodeURIComponent(redirectTarget)}`} className="text-cyan-400 font-semibold hover:underline">
+          Register account
+        </Link>
+      </div>
     </form>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="text-slate-400 text-sm text-center py-8">Loading authentication...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

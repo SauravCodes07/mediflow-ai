@@ -1,5 +1,5 @@
-import { PageShell } from "../../components/ui/PageShell";
+import CommandCenterDashboard from "../dashboard/page";
 
-export default function Page() {
-  return <PageShell title="Command Center" description="The single real-time view of hospital-wide operations." />;
+export default function CommandCenterPage() {
+  return <CommandCenterDashboard />;
 }

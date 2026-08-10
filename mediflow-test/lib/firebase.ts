@@ -9,6 +9,8 @@ import {
   sendEmailVerification,
   signInWithPopup,
   onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence,
   type Auth,
   type User,
 } from "firebase/auth";
@@ -18,6 +20,8 @@ import {
  * The `getFirebaseAuth()` helper is called at runtime (never at build/SSR time),
  * so missing NEXT_PUBLIC_FIREBASE_* values do not cause a build failure.
  */
+
+let authInstance: Auth | null = null;
 
 function getFirebaseApp(): FirebaseApp {
   if (getApps().length > 0) return getApp();
@@ -34,7 +38,15 @@ function getFirebaseApp(): FirebaseApp {
 }
 
 function getFirebaseAuth(): Auth {
-  return getAuth(getFirebaseApp());
+  if (authInstance) return authInstance;
+  
+  authInstance = getAuth(getFirebaseApp());
+  // Ensure persistent login across page refreshes and browser tabs
+  setPersistence(authInstance, browserLocalPersistence).catch((err) => {
+    console.warn("Firebase persistence error:", err);
+  });
+
+  return authInstance;
 }
 
 const googleProvider = new GoogleAuthProvider();

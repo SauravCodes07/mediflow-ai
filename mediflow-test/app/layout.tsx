@@ -3,9 +3,9 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 
 export const metadata: Metadata = {
-  title: "Mediflow-AI — Unified Hospital Operations",
+  title: "Mediflow-AI | Smarter Hospital Operations",
   description:
-    "Mediflow-AI unifies admissions, wards, OT, CSSD and analytics into one real-time hospital operations platform.",
+    "Mediflow-AI connects hospital departments, automates workflows and provides real-time operational intelligence for better patient care.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
