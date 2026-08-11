@@ -6,9 +6,16 @@ import { TimeSeriesPoint } from "@/lib/data/operational-context";
 interface PatientFlowLineChartProps {
   series: TimeSeriesPoint[];
   height?: number;
+  timeRange?: "24h" | "7d" | "30d";
+  onTimeRangeChange?: (range: "24h" | "7d" | "30d") => void;
 }
 
-export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineChartProps) {
+export function PatientFlowLineChart({
+  series,
+  height = 320,
+  timeRange = "7d",
+  onTimeRangeChange,
+}: PatientFlowLineChartProps) {
   const chartId = useId();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [hoveredSeries, setHoveredSeries] = useState<string | null>(null);
@@ -28,7 +35,6 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
     }
   }, []);
 
-  // Ensure series has 7 days with complete data (Mon..Sun) including Fri and Sat
   const chartData: TimeSeriesPoint[] = series && series.length > 0 ? series : [
     { label: "Mon", admissions: 42, discharges: 31, transfers: 8, occupancy: 82, otUtilization: 80, netFlow: 11, changePct: 4.2 },
     { label: "Tue", admissions: 48, discharges: 36, transfers: 10, occupancy: 84, otUtilization: 82, netFlow: 12, changePct: 5.1 },
@@ -39,15 +45,14 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
     { label: "Sun", admissions: 38, discharges: 34, transfers: 7, occupancy: 77, otUtilization: 70, netFlow: 4, changePct: 1.8 },
   ];
 
-  // Dynamic series labels
   const s1Label = chartData[0]?.series1Label || "Admissions Queue";
   const s2Label = chartData[0]?.series2Label || "Discharges Completed";
   const s3Label = chartData[0]?.series3Label || "Patient Transfers";
 
-  const paddingLeft = 40;
-  const paddingRight = 20;
-  const paddingTop = 25;
-  const paddingBottom = 40;
+  const paddingLeft = 36;
+  const paddingRight = 16;
+  const paddingTop = 20;
+  const paddingBottom = 32;
 
   const chartWidth = 700;
   const chartHeight = height;
@@ -75,7 +80,6 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
     return paddingTop + drawHeight - (val / maxVal) * drawHeight;
   };
 
-  // Build SVG Path Commands
   const buildPathD = (key: 1 | 2 | 3) => {
     return chartData.reduce((acc, pt, idx) => {
       const x = getX(idx);
@@ -84,7 +88,6 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
     }, "");
   };
 
-  // Build SVG Area Gradient Path
   const buildAreaD = (key: 1 | 2 | 3) => {
     const lineD = buildPathD(key);
     const lastX = getX(chartData.length - 1);
@@ -93,7 +96,6 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
     return `${lineD} L ${lastX} ${bottomY} L ${firstX} ${bottomY} Z`;
   };
 
-  // Single robust interaction handler mapping cursor X to nearest point index
   const updateHoverIndex = (clientX: number) => {
     if (!svgRef.current) return;
     const rect = svgRef.current.getBoundingClientRect();
@@ -123,66 +125,105 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
 
   const activePoint = activeIndex !== null ? chartData[activeIndex] : null;
   const activeX = activeIndex !== null ? getX(activeIndex) : null;
-
-  // Collision detection: If cursor is on right half (e.g., Fri/Sat/Sun), put tooltip on left side!
   const isRightHalf = activeIndex !== null && activeIndex >= Math.floor(chartData.length / 2);
 
   return (
-    <div ref={containerRef} className="w-full flex flex-col space-y-4 font-sans select-none">
-      {/* Interactive Legend Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs border-b border-slate-100 dark:border-slate-800 pb-3">
-        <div className="flex items-center space-x-5 font-semibold">
+    <div ref={containerRef} className="w-full flex flex-col h-full font-sans select-none space-y-3">
+      
+      {/* Header Bar with Title & 24H/7D/30D Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+        <div>
+          <h2 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">
+            Patient Flow Analytics
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            Admissions, discharges and transfers over time
+          </p>
+        </div>
+
+        {/* 24H / 7D / 30D Time Controls */}
+        <div className="flex items-center space-x-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0 self-start sm:self-auto">
+          {(["24h", "7d", "30d"] as const).map((rng) => {
+            const isSelected = timeRange === rng;
+            const label = rng === "24h" ? "24H" : rng === "7d" ? "7D" : "30D";
+            return (
+              <button
+                key={rng}
+                type="button"
+                onClick={() => onTimeRangeChange && onTimeRangeChange(rng)}
+                className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
+                  isSelected
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="border-t border-slate-100 dark:border-slate-800 shrink-0" />
+
+      {/* Compact Interactive Legend Pills */}
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
+        <div className="flex flex-wrap items-center gap-3 font-semibold">
           {/* Series 1 Button (Blue) */}
           <button
+            type="button"
             onClick={() => toggleSeries("s1")}
             onMouseEnter={() => setHoveredSeries("s1")}
             onMouseLeave={() => setHoveredSeries(null)}
-            className={`flex items-center space-x-2 transition-all cursor-pointer ${
+            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 transition-all cursor-pointer ${
               !visibleSeries.s1 ? "opacity-35 line-through" : "opacity-100"
             }`}
           >
-            <span className="w-3 h-3 rounded-full bg-blue-600 shadow-sm" />
-            <span className="text-slate-800 dark:text-slate-200">{s1Label}</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-xs" />
+            <span className="text-slate-900 dark:text-white font-bold">{s1Label}</span>
           </button>
 
           {/* Series 2 Button (Green) */}
           <button
+            type="button"
             onClick={() => toggleSeries("s2")}
             onMouseEnter={() => setHoveredSeries("s2")}
             onMouseLeave={() => setHoveredSeries(null)}
-            className={`flex items-center space-x-2 transition-all cursor-pointer ${
+            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 transition-all cursor-pointer ${
               !visibleSeries.s2 ? "opacity-35 line-through" : "opacity-100"
             }`}
           >
-            <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm" />
-            <span className="text-slate-800 dark:text-slate-200">{s2Label}</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs" />
+            <span className="text-slate-900 dark:text-white font-bold">{s2Label}</span>
           </button>
 
           {/* Series 3 Button (Purple) */}
           <button
+            type="button"
             onClick={() => toggleSeries("s3")}
             onMouseEnter={() => setHoveredSeries("s3")}
             onMouseLeave={() => setHoveredSeries(null)}
-            className={`flex items-center space-x-2 transition-all cursor-pointer ${
+            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 transition-all cursor-pointer ${
               !visibleSeries.s3 ? "opacity-35 line-through" : "opacity-100"
             }`}
           >
-            <span className="w-3 h-3 rounded-full bg-purple-600 shadow-sm" />
-            <span className="text-slate-800 dark:text-slate-200">{s3Label}</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-purple-600 shadow-xs" />
+            <span className="text-slate-900 dark:text-white font-bold">{s3Label}</span>
           </button>
         </div>
 
-        <div className="text-[11px] text-slate-400 font-medium hidden sm:block">
-          ● Hover canvas for crosshair & exact values
-        </div>
+        <span className="text-[11px] text-slate-400 font-medium hidden md:inline">
+          ● Hover chart for values
+        </span>
       </div>
 
-      {/* SVG Canvas Area */}
-      <div className="relative w-full overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+      {/* Flexible Chart Canvas Container (flex-1 fills available height) */}
+      <div className="relative flex-1 w-full min-h-[220px] max-h-[360px] overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-          className="w-full h-auto overflow-visible cursor-crosshair"
+          preserveAspectRatio="none"
+          className="w-full h-full overflow-visible cursor-crosshair"
           onMouseMove={handleMouseMove}
           onClick={handleClick}
           onMouseLeave={() => {
@@ -191,15 +232,15 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
         >
           <defs>
             <linearGradient id={`grad_s1_${chartId}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#1677FF" stopOpacity="0.25" />
+              <stop offset="0%" stopColor="#1677FF" stopOpacity="0.2" />
               <stop offset="100%" stopColor="#1677FF" stopOpacity="0.0" />
             </linearGradient>
             <linearGradient id={`grad_s2_${chartId}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
+              <stop offset="0%" stopColor="#10B981" stopOpacity="0.2" />
               <stop offset="100%" stopColor="#10B981" stopOpacity="0.0" />
             </linearGradient>
             <linearGradient id={`grad_s3_${chartId}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.2" />
+              <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.15" />
               <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.0" />
             </linearGradient>
           </defs>
@@ -211,7 +252,7 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
             return (
               <g key={pct}>
                 <line x1={paddingLeft} y1={y} x2={chartWidth - paddingRight} y2={y} stroke="#F1F5F9" strokeWidth="1" className="dark:stroke-slate-800" />
-                <text x={paddingLeft - 8} y={y + 4} textAnchor="end" fill="#94A3B8" fontSize="10" fontWeight="600">
+                <text x={paddingLeft - 6} y={y + 3} textAnchor="end" fill="#94A3B8" fontSize="10" fontWeight="600">
                   {val}
                 </text>
               </g>
@@ -250,7 +291,7 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
               d={buildPathD(1)}
               fill="none"
               stroke="#1677FF"
-              strokeWidth={hoveredSeries === "s1" ? "4" : "2.5"}
+              strokeWidth={hoveredSeries === "s1" ? "3.5" : "2.5"}
               opacity={hoveredSeries && hoveredSeries !== "s1" ? 0.25 : 1}
               className="transition-all duration-300 pointer-events-none"
             />
@@ -260,7 +301,7 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
               d={buildPathD(2)}
               fill="none"
               stroke="#10B981"
-              strokeWidth={hoveredSeries === "s2" ? "4" : "2.5"}
+              strokeWidth={hoveredSeries === "s2" ? "3.5" : "2.5"}
               opacity={hoveredSeries && hoveredSeries !== "s2" ? 0.25 : 1}
               className="transition-all duration-300 pointer-events-none"
             />
@@ -270,8 +311,8 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
               d={buildPathD(3)}
               fill="none"
               stroke="#8B5CF6"
-              strokeWidth={hoveredSeries === "s3" ? "4" : "2.5"}
-              strokeDasharray="5 3"
+              strokeWidth={hoveredSeries === "s3" ? "3.5" : "2.5"}
+              strokeDasharray="4 3"
               opacity={hoveredSeries && hoveredSeries !== "s3" ? 0.25 : 1}
               className="transition-all duration-300 pointer-events-none"
             />
@@ -287,7 +328,7 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
                 {/* X Axis Labels */}
                 <text
                   x={x}
-                  y={chartHeight - 12}
+                  y={chartHeight - 10}
                   textAnchor="middle"
                   fill={isActive ? "#1677FF" : "#64748B"}
                   fontSize={isActive ? "11" : "10"}
@@ -301,7 +342,7 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
                   <circle
                     cx={x}
                     cy={getY(getVal(pt, 1))}
-                    r={isActive ? "7" : "3.5"}
+                    r={isActive ? "6" : "3"}
                     fill="#1677FF"
                     stroke="#FFFFFF"
                     strokeWidth="2"
@@ -314,7 +355,7 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
                   <circle
                     cx={x}
                     cy={getY(getVal(pt, 2))}
-                    r={isActive ? "7" : "3.5"}
+                    r={isActive ? "6" : "3"}
                     fill="#10B981"
                     stroke="#FFFFFF"
                     strokeWidth="2"
@@ -327,7 +368,7 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
                   <circle
                     cx={x}
                     cy={getY(getVal(pt, 3))}
-                    r={isActive ? "7" : "3.5"}
+                    r={isActive ? "6" : "3"}
                     fill="#8B5CF6"
                     stroke="#FFFFFF"
                     strokeWidth="2"
@@ -339,19 +380,19 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
           })}
         </svg>
 
-        {/* Custom Floating Glass Tooltip Card - WITH pointer-events-none and Dynamic Positioning */}
+        {/* Dynamic Tooltip */}
         {activePoint && (
           <div
-            className={`absolute top-3 ${
-              isRightHalf ? "left-4" : "right-4"
-            } z-30 p-4 rounded-2xl bg-[#071B34]/95 text-white shadow-2xl border border-white/20 text-xs space-y-2 pointer-events-none backdrop-blur-md min-w-[210px] transition-all duration-150`}
+            className={`absolute top-2 ${
+              isRightHalf ? "left-3" : "right-3"
+            } z-30 p-3 rounded-2xl bg-[#071B34]/95 text-white shadow-xl border border-white/20 text-xs space-y-1.5 pointer-events-none backdrop-blur-md min-w-[190px] transition-all duration-150`}
           >
-            <div className="font-extrabold text-cyan-300 text-sm border-b border-white/10 pb-1.5 flex items-center justify-between">
+            <div className="font-extrabold text-cyan-300 text-xs border-b border-white/10 pb-1 flex items-center justify-between">
               <span>{activePoint.label}</span>
-              <span className="text-[10px] font-semibold text-slate-400">Department Snapshot</span>
+              <span className="text-[10px] text-slate-400 font-semibold">{timeRange.toUpperCase()} Flow</span>
             </div>
 
-            <div className="space-y-1.5 pt-0.5">
+            <div className="space-y-1 pt-0.5 text-[11px]">
               {visibleSeries.s1 && (
                 <div className="flex justify-between items-center">
                   <span className="text-slate-300 font-medium flex items-center space-x-1.5">
@@ -382,14 +423,10 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
                 </div>
               )}
             </div>
-
-            <div className="pt-2 border-t border-white/10 flex justify-between items-center text-[11px]">
-              <span className="text-slate-400">Net Flow / Variance:</span>
-              <span className="font-bold text-cyan-300">+{activePoint.netFlow ?? (getVal(activePoint, 1) - getVal(activePoint, 2))}</span>
-            </div>
           </div>
         )}
       </div>
+
     </div>
   );
 }

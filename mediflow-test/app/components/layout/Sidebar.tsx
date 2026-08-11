@@ -11,6 +11,30 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
+const NAV_ICONS: Record<string, string> = {
+  "/dashboard": "📊",
+  "/analytics": "📈",
+  "/admissions": "🏥",
+  "/wards": "🛏️",
+  "/patients": "👥",
+  "/patient-workflow": "🔄",
+  "/ot": "🔬",
+  "/ot/schedule": "📅",
+  "/ot-dashboard": "⚡",
+  "/cssd": "🧰",
+  "/cssd/instrument-packs": "📦",
+  "/cssd/sterilization": "🧪",
+  "/ai-assistant": "✨",
+  "/ai-insights": "💡",
+  "/reports": "📄",
+  "/alerts": "🔔",
+  "/notifications": "📬",
+  "/audit-logs": "🛡️",
+  "/admin/users": "👤",
+  "/settings": "⚙️",
+  "/profile": "👤",
+};
+
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
 
@@ -18,13 +42,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     <aside className={`sidebar ${open ? "open" : ""}`} aria-label="Primary navigation">
       {/* Brand Logo Header */}
       <div className="sidebar-brand flex items-center justify-between">
-        <Link href="/" className="inline-flex items-center" onClick={onClose}>
+        <Link href="/dashboard" className="inline-flex items-center" onClick={onClose}>
           <Logo size="sm" variant="dark" showTagline={false} />
         </Link>
         {onClose && (
           <button
             onClick={onClose}
-            className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
+            className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
             aria-label="Close Sidebar"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -42,8 +66,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           </svg>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-xs font-bold text-white truncate">{HOSPITAL_SHORT_NAME}</div>
-          <div className="text-[10px] text-slate-300 truncate">Main Campus · Org-01</div>
+          <div className="text-xs font-extrabold text-white truncate">{HOSPITAL_SHORT_NAME}</div>
+          <div className="text-[10px] text-slate-300 truncate font-semibold">Main Campus · Org-01</div>
         </div>
       </div>
 
@@ -54,6 +78,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             <div className="sidebar-group-label">{group.label}</div>
             {group.items.map((item) => {
               const active = pathname === item.href;
+              const icon = NAV_ICONS[item.href] || "🔹";
               return (
                 <Link
                   key={item.href}
@@ -61,6 +86,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   onClick={onClose}
                   className={`sidebar-link ${active ? "active" : ""}`}
                 >
+                  <span className="text-sm shrink-0">{icon}</span>
                   <span className="truncate">{item.label}</span>
                 </Link>
               );

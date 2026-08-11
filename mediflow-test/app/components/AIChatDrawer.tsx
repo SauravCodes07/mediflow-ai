@@ -2,6 +2,14 @@
 
 import { useState, useRef, useEffect } from "react";
 import { MarkdownRenderer } from "./ui/MarkdownRenderer";
+import Link from "next/link";
+
+interface StructuredData {
+  type?: "ot" | "alerts" | "wards" | "cssd";
+  items?: { label: string; value: string | number; subtext?: string; status?: "normal" | "warning" | "critical" }[];
+  actionHref?: string;
+  actionText?: string;
+}
 
 interface Message {
   id: string;
@@ -9,21 +17,21 @@ interface Message {
   text: string;
   provider?: string;
   timestamp: string;
+  structured?: StructuredData;
 }
 
 const INITIAL_WELCOME_MESSAGE: Message = {
-  id: "msg_welcome",
+  id: "msg_welcome_drawer",
   sender: "assistant",
-  text: `### ✨ Welcome to Mediflow-AI\n\nYour real-time hospital operations assistant. I can help you monitor:\n\n- **Operating Theatre** schedules & turnover\n- **Admissions** bottlenecks & consent status\n- **CSSD** instrument pack availability\n- **Critical Alerts** & emergency operations\n\nHow can I assist your operational team today?`,
+  text: "Good evening. What would you like to investigate across Mediflow General Hospital operations?",
   timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
 };
 
-const PRESET_CHIPS = [
-  "Summarize OT Status",
-  "Critical Alerts",
-  "Admissions Queue",
-  "CSSD Availability",
-  "Today's Operations",
+const COMMAND_CARDS = [
+  { id: "ot", tag: "OT STATUS", metric: "67%", prompt: "Summarize OT room utilization" },
+  { id: "alerts", tag: "CRITICAL ALERTS", metric: "2 active", prompt: "Show critical alerts" },
+  { id: "wards", tag: "WARD CAPACITY", metric: "82%", prompt: "Which wards are near capacity?" },
+  { id: "cssd", tag: "CSSD STATUS", metric: "4 flagged", prompt: "Show CSSD issues" },
 ];
 
 export function AIChatDrawer() {
@@ -32,7 +40,6 @@ export function AIChatDrawer() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [userScrolledUp, setUserScrolledUp] = useState(false);
-  const [showScrollBtn, setShowScrollBtn] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -52,7 +59,6 @@ export function AIChatDrawer() {
     const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
     const isUp = scrollHeight - scrollTop - clientHeight > 100;
     setUserScrolledUp(isUp);
-    setShowScrollBtn(isUp);
   };
 
   const handleSend = async (queryText?: string) => {
@@ -61,7 +67,7 @@ export function AIChatDrawer() {
 
     const timeStr = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     const userMsg: Message = {
-      id: `usr_${messages.length + 1}`,
+      id: `usr_${Date.now()}`,
       sender: "user",
       text: textToSend.trim(),
       timestamp: timeStr,
@@ -79,21 +85,68 @@ export function AIChatDrawer() {
         body: JSON.stringify({ message: textToSend }),
       });
       const data = await res.json();
+
+      let structuredCard: StructuredData | undefined = undefined;
+      const qLower = textToSend.toLowerCase();
+      if (qLower.includes("ot") || qLower.includes("room")) {
+        structuredCard = {
+          type: "ot",
+          items: [
+            { label: "OT 01", value: "82%", subtext: "14 cases · In Operation", status: "warning" },
+            { label: "OT 02", value: "67%", subtext: "11 cases · Preparing", status: "normal" },
+            { label: "OT 03", value: "54%", subtext: "9 cases · Cleaning", status: "normal" },
+          ],
+          actionHref: "/ot-dashboard",
+          actionText: "Open OT Dashboard",
+        };
+      } else if (qLower.includes("alert") || qLower.includes("critical")) {
+        structuredCard = {
+          type: "alerts",
+          items: [
+            { label: "ALT-001", value: "OT Room 01 Delay", subtext: "Turnover time exceeded by 28 min", status: "critical" },
+            { label: "ALT-002", value: "CSSD Pack Expired", subtext: "Pack GEN-SET-09 reached expiration", status: "critical" },
+          ],
+          actionHref: "/alerts",
+          actionText: "Manage Alerts",
+        };
+      } else if (qLower.includes("ward") || qLower.includes("capacity")) {
+        structuredCard = {
+          type: "wards",
+          items: [
+            { label: "Ward A", value: "82%", subtext: "39 of 48 beds occupied", status: "warning" },
+            { label: "Ward C", value: "90%", subtext: "38 of 42 beds occupied", status: "critical" },
+          ],
+          actionHref: "/settings",
+          actionText: "View Ward Rules",
+        };
+      } else if (qLower.includes("cssd") || qLower.includes("pack")) {
+        structuredCard = {
+          type: "cssd",
+          items: [
+            { label: "Available Packs", value: "1,420", subtext: "Ready for surgery", status: "normal" },
+            { label: "Flagged Packs", value: "4", subtext: "Expires < 3 days", status: "warning" },
+          ],
+          actionHref: "/settings",
+          actionText: "CSSD Configuration",
+        };
+      }
+
       const assistantMsg: Message = {
-        id: `ast_${messages.length + 2}`,
+        id: `ast_${Date.now()}`,
         sender: "assistant",
-        text: data.reply || "Sorry, I could not process your request.",
+        text: data.reply || "Operations data processed.",
         provider: data.provider,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        structured: structuredCard,
       };
       setMessages((prev) => [...prev, assistantMsg]);
     } catch {
       setMessages((prev) => [
         ...prev,
         {
-          id: `err_${messages.length + 2}`,
+          id: `err_${Date.now()}`,
           sender: "assistant",
-          text: "⚠ **Unable to generate response**\n\nSomething went wrong while contacting Mediflow-AI engine. Please check your connection and try again.",
+          text: "⚠️ **Notice**: Unable to connect to Mediflow-AI server.",
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
       ]);
@@ -104,67 +157,62 @@ export function AIChatDrawer() {
 
   return (
     <>
-      {/* Floating Launcher Button */}
+      {/* Floating Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-5 right-5 z-50 h-13 px-5 rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-semibold shadow-[0_0_30px_rgba(24,216,232,0.4)] border border-cyan-300/30 flex items-center space-x-2.5 transition-all transform hover:scale-105 active:scale-95"
+        className="fixed bottom-5 right-5 z-50 h-12 px-4 rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-extrabold shadow-[0_0_25px_rgba(22,119,255,0.4)] border border-cyan-300/30 flex items-center space-x-2 transition-all transform hover:scale-105 active:scale-95 cursor-pointer"
         aria-label="Toggle Mediflow-AI Assistant"
       >
-        <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-          <svg className="w-4 h-4 text-cyan-200" viewBox="0 0 32 32" fill="none">
-            <path d="M16 27.5C16 27.5 4 20.2 4 12.2C4 8.2 7.2 5 11.2 5C13.6 5 15.7 6.2 16 8C16.3 6.2 18.4 5 20.8 5C24.8 5 28 8.2 28 12.2C28 20.2 16 27.5 16 27.5Z" stroke="currentColor" strokeWidth="2.5" />
-            <path d="M7 14.5H11.5L13.5 10.5L16.5 19L19.5 13L21 14.5H25" stroke="currentColor" strokeWidth="2" />
-          </svg>
+        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0 text-xs">
+          ✨
         </div>
-        <span className="text-sm tracking-tight font-bold">Mediflow-AI Assistant</span>
+        <span className="text-xs tracking-tight">Mediflow-AI Assistant</span>
       </button>
 
-      {/* Chat Window Drawer */}
+      {/* Floating Chat Window Drawer */}
       {isOpen && (
         <div
-          className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-50 w-full sm:w-[440px] h-[92vh] sm:h-[660px] bg-[#07152D] border border-white/15 rounded-t-3xl sm:rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.7)] flex flex-col overflow-hidden backdrop-blur-xl transition-all"
+          className="fixed bottom-0 right-0 sm:bottom-6 sm:right-6 z-[60] w-full sm:w-[420px] h-[90vh] sm:h-[620px] bg-[#07152D] border border-white/15 rounded-t-3xl sm:rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.7)] flex flex-col overflow-hidden backdrop-blur-xl transition-all"
           role="dialog"
           aria-label="Mediflow-AI Chat Interface"
         >
           {/* Header */}
-          <div className="px-5 py-4 bg-[#03122D] border-b border-white/10 flex items-center justify-between shrink-0">
-            <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-400/40 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-cyan-400" viewBox="0 0 32 32" fill="none">
-                  <path d="M16 27.5C16 27.5 4 20.2 4 12.2C4 8.2 7.2 5 11.2 5C13.6 5 15.7 6.2 16 8C16.3 6.2 18.4 5 20.8 5C24.8 5 28 8.2 28 12.2C28 20.2 16 27.5 16 27.5Z" stroke="currentColor" strokeWidth="2.2" />
-                  <path d="M7 14.5H11.5L13.5 10.5L16.5 19L19.5 13L21 14.5H25" stroke="currentColor" strokeWidth="2" />
-                </svg>
+          <div className="px-5 py-3.5 bg-[#03122D] border-b border-white/10 flex items-center justify-between shrink-0">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center shrink-0 text-sm">
+                ✨
               </div>
               <div>
                 <div className="flex items-center space-x-2">
-                  <span className="font-bold text-sm text-white tracking-tight">Mediflow-AI Assistant</span>
-                  <span className="flex h-2 w-2 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                  </span>
+                  <span className="font-extrabold text-xs text-white tracking-tight">Mediflow AI</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] text-emerald-400 font-bold">● Online</span>
                 </div>
-                <div className="text-[11px] text-slate-400 font-medium">Hospital Operations Intelligence</div>
+                <div className="text-[10px] text-slate-400 font-medium">Clinical Operations Assistant</div>
               </div>
             </div>
 
             <button
               onClick={() => setIsOpen(false)}
-              className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center border border-white/10 transition-colors"
+              className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center border border-white/10 transition-colors cursor-pointer text-xs font-bold"
               aria-label="Close assistant"
             >
               ✕
             </button>
           </div>
 
-          {/* Quick Action Preset Chips */}
-          <div className="px-4 py-2.5 bg-[#051024] border-b border-white/5 flex items-center space-x-2 overflow-x-auto scrollbar-none shrink-0">
-            {PRESET_CHIPS.map((chip) => (
+          {/* Quick Action Visual Command Cards */}
+          <div className="p-3 bg-[#051024] border-b border-white/5 grid grid-cols-2 gap-2 shrink-0">
+            {COMMAND_CARDS.map((card) => (
               <button
-                key={chip}
-                onClick={() => handleSend(chip)}
-                className="px-3 py-1.5 rounded-full bg-white/5 hover:bg-cyan-500/15 border border-white/10 hover:border-cyan-400/40 text-slate-300 hover:text-cyan-300 text-xs font-medium whitespace-nowrap transition-all shrink-0"
+                key={card.id}
+                onClick={() => handleSend(card.prompt)}
+                className="p-2 rounded-xl bg-white/5 hover:bg-cyan-500/15 border border-white/10 text-left transition-all cursor-pointer group"
               >
-                {chip}
+                <div className="text-[9px] font-extrabold uppercase text-slate-400">{card.tag}</div>
+                <div className="text-sm font-extrabold font-mono text-cyan-300 group-hover:scale-105 transition-transform">
+                  {card.metric}
+                </div>
               </button>
             ))}
           </div>
@@ -173,7 +221,7 @@ export function AIChatDrawer() {
           <div
             ref={chatContainerRef}
             onScroll={handleScroll}
-            className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-4 relative"
+            className="flex-1 p-4 overflow-y-auto space-y-4 relative text-xs"
           >
             {messages.map((m) => (
               <div
@@ -181,104 +229,87 @@ export function AIChatDrawer() {
                 className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"} space-y-1`}
               >
                 {m.sender === "assistant" && (
-                  <div className="flex items-center space-x-2 mb-1">
-                    <div className="w-5 h-5 rounded-full bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-[10px] text-cyan-300">
-                      ✨
-                    </div>
-                    <span className="text-[11px] font-semibold text-cyan-400">Mediflow-AI</span>
+                  <div className="flex items-center space-x-1.5 mb-1">
+                    <span className="text-purple-400 text-[10px]">✨</span>
+                    <span className="text-[10px] font-bold text-purple-300">Mediflow AI</span>
                     <span className="text-[10px] text-slate-500">{m.timestamp}</span>
                   </div>
                 )}
 
                 <div
-                  className={`p-4 rounded-2xl ${
+                  className={`p-3.5 rounded-2xl ${
                     m.sender === "user"
-                      ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-tr-xs shadow-md max-w-[85%] text-xs sm:text-sm font-medium"
-                      : "bg-[#0A1B35]/90 border border-white/10 text-slate-200 rounded-tl-xs shadow-lg max-w-[90%] text-xs sm:text-sm"
+                      ? "bg-blue-600 text-white rounded-tr-xs shadow-md max-w-[85%] font-semibold"
+                      : "bg-[#0A1B35]/90 border border-white/10 text-slate-200 rounded-tl-xs shadow-lg max-w-[90%]"
                   }`}
                 >
                   {m.sender === "assistant" ? (
-                    <div>
-                      <MarkdownRenderer content={m.text} />
-                      <div className="mt-3 pt-2 border-t border-white/10 text-[10px] text-slate-400 flex items-center justify-between">
-                        <span>AI-Generated Operational Guidance</span>
-                        {m.provider && (
-                          <span className="uppercase tracking-wider text-[9px] text-cyan-400/80">
-                            {m.provider}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                    <MarkdownRenderer content={m.text} />
                   ) : (
-                    <div>{m.text}</div>
+                    <p className="whitespace-pre-wrap">{m.text}</p>
                   )}
                 </div>
 
-                {m.sender === "user" && (
-                  <span className="text-[10px] text-slate-500 pr-1">{m.timestamp}</span>
+                {/* Structured Cards inside Drawer */}
+                {!m.sender && m.structured && (
+                  <div className="p-3 rounded-xl bg-[#03122D] border border-white/10 text-xs space-y-2 w-[90%]">
+                    <div className="text-[10px] font-bold text-cyan-400 uppercase">Telemetry Breakdown</div>
+                    {m.structured.items?.map((item, i) => (
+                      <div key={i} className="flex justify-between items-center text-[11px] font-medium text-slate-200">
+                        <span>{item.label}</span>
+                        <span className="font-mono font-bold text-cyan-300">{item.value}</span>
+                      </div>
+                    ))}
+                    {m.structured.actionHref && (
+                      <Link
+                        href={m.structured.actionHref}
+                        onClick={() => setIsOpen(false)}
+                        className="inline-block text-[11px] font-bold text-blue-400 hover:underline pt-1"
+                      >
+                        {m.structured.actionText} →
+                      </Link>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
 
-            {/* Typing Indicator */}
             {loading && (
-              <div className="flex items-center space-x-3 p-3.5 rounded-2xl bg-[#0A1B35]/90 border border-white/10 max-w-[75%]">
-                <div className="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-[10px]">
-                  ✨
-                </div>
-                <div className="flex items-center space-x-1.5 text-xs text-slate-300 font-medium">
-                  <span>Analyzing hospital operations</span>
-                  <div className="flex space-x-1 pl-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: "300ms" }} />
-                  </div>
-                </div>
+              <div className="p-3 rounded-xl bg-white/5 text-slate-400 text-xs flex items-center space-x-2">
+                <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
+                <span>Analyzing metrics...</span>
               </div>
             )}
 
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Floating Scroll to Bottom Button */}
-          {showScrollBtn && (
-            <button
-              onClick={() => {
-                setUserScrolledUp(false);
-                scrollToBottom();
+          {/* Input Footer */}
+          <div className="p-3 bg-[#03122D] border-t border-white/10 shrink-0">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSend();
               }}
-              className="absolute bottom-20 right-6 px-3 py-1.5 rounded-full bg-blue-600 text-white text-xs font-semibold shadow-lg border border-white/20 flex items-center space-x-1 hover:bg-blue-500 transition-all z-20"
+              className="flex items-center space-x-2"
             >
-              <span>↓ New response</span>
-            </button>
-          )}
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask about operations..."
+                className="flex-1 px-3.5 py-2.5 rounded-xl border border-white/15 bg-white/5 text-white placeholder-slate-400 text-xs font-semibold focus:outline-none focus:border-purple-400"
+              />
+              <button
+                type="submit"
+                disabled={loading || !input.trim()}
+                className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs disabled:opacity-50 cursor-pointer"
+              >
+                Send
+              </button>
+            </form>
+          </div>
 
-          {/* Fixed Input Area */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend();
-            }}
-            className="p-3 bg-[#03122D] border-t border-white/10 flex items-center space-x-2 shrink-0"
-          >
-            <input
-              type="text"
-              className="flex-1 px-4 py-3 text-xs sm:text-sm rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400/60 transition-colors"
-              placeholder="Ask Mediflow-AI about operations..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-            />
-            <button
-              type="submit"
-              disabled={loading || !input.trim()}
-              className="h-10 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold text-xs sm:text-sm shadow-md hover:from-blue-500 hover:to-cyan-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all shrink-0 flex items-center justify-center space-x-1"
-            >
-              <span>Send</span>
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </button>
-          </form>
         </div>
       )}
     </>
