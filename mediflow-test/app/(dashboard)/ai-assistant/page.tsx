@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { PageShell } from "../../components/ui/PageShell";
 import { MarkdownRenderer } from "../../components/ui/MarkdownRenderer";
+import { HOSPITAL_NAME } from "@/lib/config/hospital";
 
 interface Message {
   id: string;
@@ -15,7 +16,7 @@ interface Message {
 const INITIAL_WELCOME_MESSAGE: Message = {
   id: "msg_welcome_page",
   sender: "assistant",
-  text: `### ✨ Welcome to Mediflow-AI Operational Assistant\n\nFull-screen intelligent clinical intelligence engine for Meridian General Hospital. I can assist your team with:\n\n- **Operating Theatre**: Room utilization, surgical procedure delays & turnover\n- **Admissions**: Intake bottlenecks, cardiology clearance & pending consent forms\n- **CSSD**: Autoclave batch sterilization & instrument pack availability\n- **Emergency Alerts**: Real-time operational triage & critical alert escalation\n\nHow can I help you today?`,
+  text: `### ✨ Welcome to Mediflow-AI Operational Assistant\n\nFull-screen intelligent clinical intelligence engine for ${HOSPITAL_NAME}. I can assist your team with:\n\n- **Operating Theatre**: Room utilization, surgical procedure delays & turnover\n- **Admissions**: Intake bottlenecks, cardiology clearance & pending consent forms\n- **CSSD**: Autoclave batch sterilization & instrument pack availability\n- **Emergency Alerts**: Real-time operational triage & critical alert escalation\n\nHow can I help you today?`,
   timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
 };
 
@@ -38,152 +39,119 @@ export default function AIAssistantPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  const handleSend = async (queryText?: string) => {
-    const text = queryText || input;
-    if (!text.trim() || loading) return;
+  const handleSend = async (textToSend?: string) => {
+    const query = textToSend || input;
+    if (!query.trim() || loading) return;
 
-    const timeStr = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    setMessages((prev) => [...prev, { id: `usr_${messages.length + 1}`, sender: "user", text: text.trim(), timestamp: timeStr }]);
-    if (!queryText) setInput("");
+    const userMsg: Message = {
+      id: `usr_${Date.now()}`,
+      sender: "user",
+      text: query.trim(),
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
+    if (!textToSend) setInput("");
     setLoading(true);
 
     try {
       const res = await fetch("/api/ai-assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: query }),
       });
+
       const data = await res.json();
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `ast_${messages.length + 2}`,
-          sender: "assistant",
-          text: data.reply || "Sorry, I could not process your request.",
-          provider: data.provider,
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        },
-      ]);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `err_${messages.length + 2}`,
-          sender: "assistant",
-          text: "⚠ **Unable to generate response**\n\nFailed to connect to the Mediflow-AI engine. Please verify your network connection and retry.",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        },
-      ]);
+      if (!res.ok) throw new Error(data.error || "Failed to fetch response");
+
+      const botMsg: Message = {
+        id: `bot_${Date.now()}`,
+        sender: "assistant",
+        text: data.reply || "No response received.",
+        provider: data.provider,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+
+      setMessages((prev) => [...prev, botMsg]);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error connecting to AI service";
+      const errorMsg: Message = {
+        id: `err_${Date.now()}`,
+        sender: "assistant",
+        text: `### ⚠️ Connection Notice\n\n${msg}. Please try asking again.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+      setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <PageShell title="Mediflow AI Operational Assistant" description="Full-screen intelligent chat interface powered by Groq & Gemini for hospital workflow guidance.">
-      <div className="rounded-3xl bg-[#07152D] border border-white/15 flex flex-col h-[700px] overflow-hidden shadow-2xl backdrop-blur-xl">
-        {/* Header */}
-        <div className="px-6 py-4 bg-[#03122D] border-b border-white/10 flex items-center justify-between">
+    <PageShell title="AI Assistant" description={`Interactive Clinical Workflow & Operational AI for ${HOSPITAL_NAME}`}>
+      <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-220px)] bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden font-sans">
+        {/* Chat Header */}
+        <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/80 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500/20 via-blue-600/20 to-purple-600/20 border border-cyan-400/40 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(24,216,232,0.3)]">
-              <svg className="w-6 h-6 text-cyan-400" viewBox="0 0 32 32" fill="none">
-                <path d="M16 27.5C16 27.5 4 20.2 4 12.2C4 8.2 7.2 5 11.2 5C13.6 5 15.7 6.2 16 8C16.3 6.2 18.4 5 20.8 5C24.8 5 28 8.2 28 12.2C28 20.2 16 27.5 16 27.5Z" stroke="currentColor" strokeWidth="2.2" />
-                <path d="M7 14.5H11.5L13.5 10.5L16.5 19L19.5 13L21 14.5H25" stroke="currentColor" strokeWidth="2" />
-              </svg>
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-md">
+              ✨
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <h2 className="font-bold text-base text-white tracking-tight">Mediflow-AI Clinical Intelligence Engine</h2>
-                <span className="flex h-2.5 w-2.5 relative">
+              <h2 className="text-sm font-extrabold text-slate-900">Mediflow-AI Operational Assistant</h2>
+              <div className="flex items-center space-x-2 text-[11px] text-slate-500 font-medium">
+                <span className="flex h-2 w-2 relative">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                 </span>
+                <span>Active · {HOSPITAL_NAME} Context Connected</span>
               </div>
-              <p className="text-xs text-slate-400">Groq Llama-3.3 + Gemini Dual Provider Engine Active</p>
             </div>
           </div>
-
-          <button
-            onClick={() => setMessages([INITIAL_WELCOME_MESSAGE])}
-            className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold border border-white/10 transition-colors"
-          >
-            Reset Chat
-          </button>
         </div>
 
-        {/* Quick Presets */}
-        <div className="px-6 py-3 bg-[#051024] border-b border-white/5 flex items-center space-x-2 overflow-x-auto no-scrollbar">
-          {PRESET_CHIPS.map((chip) => (
-            <button
-              key={chip}
-              onClick={() => handleSend(chip)}
-              className="px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-cyan-500/15 border border-white/10 hover:border-cyan-400/40 text-slate-300 hover:text-cyan-300 text-xs font-medium whitespace-nowrap transition-all shrink-0"
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
-
-        {/* Message Feed */}
-        <div className="flex-1 p-6 overflow-y-auto space-y-4">
-          {messages.map((m) => (
-            <div
-              key={m.id}
-              className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"} space-y-1`}
-            >
-              {m.sender === "assistant" && (
-                <div className="flex items-center space-x-2 mb-1">
-                  <div className="w-5 h-5 rounded-full bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-[10px] text-cyan-300">
-                    ✨
-                  </div>
-                  <span className="text-xs font-semibold text-cyan-400">Mediflow-AI</span>
-                  <span className="text-[10px] text-slate-500">{m.timestamp}</span>
-                </div>
-              )}
-
-              <div
-                className={`p-4 sm:p-5 rounded-2xl ${
-                  m.sender === "user"
-                    ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-tr-xs shadow-md max-w-[75%] text-sm font-medium"
-                    : "bg-[#0A1B35]/90 border border-white/10 text-slate-200 rounded-tl-xs shadow-lg max-w-[85%] text-sm"
-                }`}
-              >
-                {m.sender === "assistant" ? (
-                  <div>
-                    <MarkdownRenderer content={m.text} />
-                    <div className="mt-3 pt-2.5 border-t border-white/10 text-xs text-slate-400 flex items-center justify-between">
-                      <span>AI-Generated Operational Guidance</span>
-                      {m.provider && (
-                        <span className="uppercase tracking-wider text-[10px] text-cyan-400/80 font-bold">
-                          {m.provider}
+        {/* Chat Scroll Log */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+          {messages.map((msg) => {
+            const isUser = msg.sender === "user";
+            return (
+              <div key={msg.id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+                <div
+                  className={`max-w-[85%] sm:max-w-[75%] p-4 rounded-2xl text-xs sm:text-sm shadow-xs ${
+                    isUser
+                      ? "bg-blue-600 text-white rounded-tr-none"
+                      : "bg-slate-50 border border-slate-200 text-slate-900 rounded-tl-none"
+                  }`}
+                >
+                  {!isUser && (
+                    <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-slate-200/60 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      <span>✨ Mediflow-AI</span>
+                      {msg.provider && (
+                        <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-extrabold">
+                          {msg.provider}
                         </span>
                       )}
                     </div>
+                  )}
+
+                  {isUser ? (
+                    <p className="whitespace-pre-wrap">{msg.text}</p>
+                  ) : (
+                    <MarkdownRenderer content={msg.text} />
+                  )}
+
+                  <div className={`text-[10px] mt-2 font-medium ${isUser ? "text-blue-200 text-right" : "text-slate-400"}`}>
+                    {msg.timestamp}
                   </div>
-                ) : (
-                  <div>{m.text}</div>
-                )}
-              </div>
-
-              {m.sender === "user" && (
-                <span className="text-[10px] text-slate-500 pr-1">{m.timestamp}</span>
-              )}
-            </div>
-          ))}
-
-          {/* Typing Indicator */}
-          {loading && (
-            <div className="flex items-center space-x-3 p-4 rounded-2xl bg-[#0A1B35]/90 border border-white/10 max-w-[60%]">
-              <div className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs">
-                ✨
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-slate-300 font-medium">
-                <span>Analyzing hospital operations</span>
-                <div className="flex space-x-1 pl-1">
-                  <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
+              </div>
+            );
+          })}
+
+          {loading && (
+            <div className="flex justify-start">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-500 flex items-center space-x-2">
+                <span className="w-2 h-2 rounded-full bg-purple-600 animate-ping" />
+                <span>Mediflow-AI is analyzing hospital metrics...</span>
               </div>
             </div>
           )}
@@ -191,32 +159,45 @@ export default function AIAssistantPage() {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Preset Chips Bar */}
+        <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 overflow-x-auto flex space-x-2 no-scrollbar">
+          {PRESET_CHIPS.map((chip) => (
+            <button
+              key={chip}
+              onClick={() => handleSend(chip)}
+              className="px-3 py-1 rounded-full bg-white border border-slate-200 hover:border-purple-300 hover:bg-purple-50 text-slate-700 text-xs font-medium whitespace-nowrap transition-all shadow-2xs shrink-0 cursor-pointer"
+            >
+              ✨ {chip}
+            </button>
+          ))}
+        </div>
+
         {/* Input Bar */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSend();
-          }}
-          className="p-4 bg-[#03122D] border-t border-white/10 flex items-center space-x-3"
-        >
-          <input
-            type="text"
-            className="flex-1 px-4 py-3.5 text-sm rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400/60 transition-colors"
-            placeholder="Ask Mediflow-AI about hospital operations, OT schedules, or admissions..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-          />
-          <button
-            type="submit"
-            disabled={loading || !input.trim()}
-            className="h-12 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold text-sm shadow-lg hover:from-blue-500 hover:to-cyan-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all shrink-0 flex items-center justify-center space-x-2"
+        <div className="p-3 sm:p-4 bg-white border-t border-slate-200">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSend();
+            }}
+            className="flex items-center space-x-2"
           >
-            <span>Send Message</span>
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </button>
-        </form>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask Mediflow-AI about OT status, admissions queue, CSSD sterilization..."
+              className="flex-1 px-4 py-3 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 font-medium"
+            />
+            <button
+              type="submit"
+              disabled={loading || !input.trim()}
+              className="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md transition-all disabled:opacity-50 flex items-center space-x-1 shrink-0 cursor-pointer"
+            >
+              <span>Send</span>
+              <span>→</span>
+            </button>
+          </form>
+        </div>
       </div>
     </PageShell>
   );

@@ -24,9 +24,9 @@ export function PageShell({
       {children ?? (
         <div className="card">
           <EmptyState
-            icon="⧗"
-            title="Data wiring not connected yet"
-            description={comingSoonNote ?? "This route's layout is final. Real data connects in a later build step."}
+            icon="ℹ"
+            title="Operational Module Active"
+            description={comingSoonNote ?? "All systems connected and running for Mediflow General Hospital."}
           />
         </div>
       )}

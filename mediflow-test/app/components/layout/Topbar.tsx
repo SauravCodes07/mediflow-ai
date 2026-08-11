@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { NotificationCenter } from "./NotificationCenter";
 import { useAuth } from "@/lib/auth-context";
+import { HOSPITAL_NAME } from "@/lib/config/hospital";
 
 export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const { user, profile, logout } = useAuth();
@@ -32,7 +33,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V9a2 2 0 012-2h2a2 2 0 012 2v12m-6 0a2 2 0 002 2h2a2 2 0 002-2" />
           </svg>
-          <span>Meridian General Hospital</span>
+          <span>{HOSPITAL_NAME}</span>
         </div>
       </div>
 
@@ -84,7 +85,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
             >
               <div className="px-4 py-2 border-b border-slate-100">
                 <div className="text-xs font-bold text-slate-900">{displayName}</div>
-                <div className="text-[11px] text-slate-500 truncate">{user?.email || "staff@meridian.org"}</div>
+                <div className="text-[11px] text-slate-500 truncate">{user?.email || "staff@mediflow.org"}</div>
               </div>
               <Link href="/profile" className="flex items-center space-x-2 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">
                 <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

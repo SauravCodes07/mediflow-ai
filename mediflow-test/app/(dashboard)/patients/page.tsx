@@ -1,5 +1,5 @@
-import { PageShell } from "../../components/ui/PageShell";
+import { PatientsBoard } from "./PatientsBoard";
 
-export default function Page() {
-  return <PageShell title="Patients" description="Search, filter and manage the current patient list." />;
+export default function PatientsPage() {
+  return <PatientsBoard />;
 }

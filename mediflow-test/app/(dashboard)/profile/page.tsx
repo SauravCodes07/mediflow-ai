@@ -3,13 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { useTheme, ThemeMode } from "@/lib/theme-context";
+import { HOSPITAL_NAME } from "@/lib/config/hospital";
 
 export default function ProfilePage() {
   const { user, profile, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(profile?.name || user?.displayName || "Dr. Anika Rao");
-  const [email, setEmail] = useState(user?.email || "anika.rao@meridian-health.org");
+  const [email, setEmail] = useState(user?.email || "anika.rao@mediflow.org");
   const [role, setRole] = useState(profile?.role || "Hospital Administrator");
   const [department, setDepartment] = useState("Hospital Administration");
   const [phone, setPhone] = useState("+1 (555) 234-5678");
@@ -20,8 +23,7 @@ export default function ProfilePage() {
   const [emailSummaries, setEmailSummaries] = useState(true);
   const [smsAlerts, setSmsAlerts] = useState(false);
 
-  // AI & Appearance Preferences
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("light");
+  // AI Preferences
   const [aiAssistantEnabled, setAiAssistantEnabled] = useState(true);
   const [aiInsightPriority, setAiInsightPriority] = useState("important");
   const [aiResponseStyle, setAiResponseStyle] = useState("balanced");
@@ -44,13 +46,15 @@ export default function ProfilePage() {
     setTimeout(() => {
       setSaving(false);
       setIsEditing(false);
-      setToastMessage("Profile updated successfully.");
+      setToastMessage("✓ Profile updated successfully.");
       setTimeout(() => setToastMessage(null), 3000);
     }, 600);
   };
 
+  const isEmailVerified = user?.emailVerified ?? true; // Real auth state
+
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6 max-w-6xl mx-auto font-sans">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-20 right-6 z-50 px-4 py-3 rounded-2xl bg-emerald-600 text-white font-semibold text-xs shadow-2xl flex items-center space-x-2 animate-in slide-in-from-top-4 duration-200">
@@ -67,8 +71,8 @@ export default function ProfilePage() {
           <span className="text-slate-900 font-bold">Profile</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Profile & Preferences</h1>
-        <p className="text-xs sm:text-sm text-slate-500 mt-1">
-          Manage your account identity, clinical role, security status, and notification preferences.
+        <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+          Manage your account identity, clinical role, security status, appearance theme, and notification preferences.
         </p>
       </div>
 
@@ -98,7 +102,7 @@ export default function ProfilePage() {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-              Meridian General Hospital · {department}
+              {HOSPITAL_NAME} · {department}
             </p>
             <div className="flex items-center space-x-2 mt-2">
               <span className="flex h-2 w-2 relative">
@@ -115,14 +119,14 @@ export default function ProfilePage() {
           {!isEditing ? (
             <button
               onClick={() => setIsEditing(true)}
-              className="w-full md:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-md transition-all"
+              className="w-full md:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-md transition-all cursor-pointer"
             >
               Edit Profile
             </button>
           ) : (
             <button
               onClick={() => setIsEditing(false)}
-              className="w-full md:w-auto px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-all"
+              className="w-full md:w-auto px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-all cursor-pointer"
             >
               Cancel Edit
             </button>
@@ -144,7 +148,7 @@ export default function ProfilePage() {
                   <input
                     type="text"
                     disabled={!isEditing}
-                    className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 text-slate-900 disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 text-slate-900 disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:border-blue-500 font-medium"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
@@ -156,11 +160,13 @@ export default function ProfilePage() {
                     <input
                       type="email"
                       disabled={!isEditing}
-                      className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 text-slate-900 disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:border-blue-500"
+                      className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 text-slate-900 disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:border-blue-500 font-medium"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
-                    <span className="absolute right-3 top-2.5 text-[11px] font-bold text-emerald-600">✓ Verified</span>
+                    <span className={`absolute right-3 top-2.5 text-[11px] font-bold ${isEmailVerified ? "text-emerald-600" : "text-amber-600"}`}>
+                      {isEmailVerified ? "✓ Verified" : "⚠ Pending Verification"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -171,7 +177,7 @@ export default function ProfilePage() {
                   <input
                     type="text"
                     disabled={!isEditing}
-                    className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 text-slate-900 disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 text-slate-900 disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:border-blue-500 font-medium"
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
                   />
@@ -182,7 +188,7 @@ export default function ProfilePage() {
                   <input
                     type="text"
                     disabled={!isEditing}
-                    className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 text-slate-900 disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 text-slate-900 disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:border-blue-500 font-medium"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
                   />
@@ -195,8 +201,8 @@ export default function ProfilePage() {
                   <input
                     type="text"
                     disabled
-                    className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-500"
-                    value="Meridian General Hospital"
+                    className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 bg-slate-50 text-slate-600 font-semibold"
+                    value={HOSPITAL_NAME}
                   />
                 </div>
 
@@ -205,7 +211,7 @@ export default function ProfilePage() {
                   <input
                     type="text"
                     disabled={!isEditing}
-                    className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 text-slate-900 disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 text-slate-900 disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:border-blue-500 font-medium"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
@@ -217,16 +223,16 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200"
+                    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-5 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-500 shadow-md"
+                    className="px-5 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-500 shadow-md cursor-pointer disabled:opacity-50"
                   >
-                    {saving ? "Saving..." : "Save Changes"}
+                    {saving ? "Saving Changes..." : "Save Changes"}
                   </button>
                 </div>
               )}
@@ -241,12 +247,12 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50">
                 <div>
                   <div className="font-bold text-slate-900">Critical Alerts</div>
-                  <div className="text-slate-500">Receive immediate notifications for emergency events</div>
+                  <div className="text-slate-500 font-medium">Receive immediate notifications for emergency events</div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setCriticalAlerts(!criticalAlerts)}
-                  className={`w-12 h-6 rounded-full transition-colors relative ${criticalAlerts ? "bg-blue-600" : "bg-slate-300"}`}
+                  className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${criticalAlerts ? "bg-blue-600" : "bg-slate-300"}`}
                 >
                   <span className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${criticalAlerts ? "right-0.5" : "left-0.5"}`} />
                 </button>
@@ -255,12 +261,12 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50">
                 <div>
                   <div className="font-bold text-slate-900">Operational Updates</div>
-                  <div className="text-slate-500">Updates regarding admissions, wards and OT turnover</div>
+                  <div className="text-slate-500 font-medium">Updates regarding admissions, wards and OT turnover</div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setOperationalUpdates(!operationalUpdates)}
-                  className={`w-12 h-6 rounded-full transition-colors relative ${operationalUpdates ? "bg-blue-600" : "bg-slate-300"}`}
+                  className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${operationalUpdates ? "bg-blue-600" : "bg-slate-300"}`}
                 >
                   <span className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${operationalUpdates ? "right-0.5" : "left-0.5"}`} />
                 </button>
@@ -269,12 +275,12 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50">
                 <div>
                   <div className="font-bold text-slate-900">Daily Email Summaries</div>
-                  <div className="text-slate-500">Receive morning operational intelligence digests</div>
+                  <div className="text-slate-500 font-medium">Receive morning operational intelligence digests</div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setEmailSummaries(!emailSummaries)}
-                  className={`w-12 h-6 rounded-full transition-colors relative ${emailSummaries ? "bg-blue-600" : "bg-slate-300"}`}
+                  className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${emailSummaries ? "bg-blue-600" : "bg-slate-300"}`}
                 >
                   <span className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${emailSummaries ? "right-0.5" : "left-0.5"}`} />
                 </button>
@@ -283,12 +289,12 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50">
                 <div>
                   <div className="font-bold text-slate-900">SMS Emergency Alerts</div>
-                  <div className="text-slate-500">Dispatch SMS for critical bed capacity warnings</div>
+                  <div className="text-slate-500 font-medium">Dispatch SMS for critical bed capacity warnings</div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSmsAlerts(!smsAlerts)}
-                  className={`w-12 h-6 rounded-full transition-colors relative ${smsAlerts ? "bg-blue-600" : "bg-slate-300"}`}
+                  className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${smsAlerts ? "bg-blue-600" : "bg-slate-300"}`}
                 >
                   <span className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${smsAlerts ? "right-0.5" : "left-0.5"}`} />
                 </button>
@@ -308,7 +314,7 @@ export default function ProfilePage() {
                 <span>🔒</span>
                 <span>Account Protected</span>
               </div>
-              <p className="text-[11px] text-emerald-800">
+              <p className="text-[11px] text-emerald-800 font-medium">
                 Your session is secured via Firebase Authentication with ADC domain guardrails.
               </p>
             </div>
@@ -323,7 +329,9 @@ export default function ProfilePage() {
 
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
                 <span className="text-slate-500">Email Verification:</span>
-                <span className="font-bold text-emerald-600">✓ Verified</span>
+                <span className={`font-bold ${isEmailVerified ? "text-emerald-600" : "text-amber-600"}`}>
+                  {isEmailVerified ? "✓ Verified" : "⚠ Pending Verification"}
+                </span>
               </div>
 
               <div className="flex justify-between items-center py-2 border-b border-slate-100">
@@ -338,18 +346,20 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Appearance & Theme Card */}
+          {/* Appearance Theme Card */}
           <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
             <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">Appearance Theme</h3>
+            <p className="text-xs text-slate-500 font-medium">Select application visual mode preference</p>
+
             <div className="flex items-center space-x-2 text-xs">
               {(["light", "dark", "system"] as const).map((t) => (
                 <button
                   key={t}
                   type="button"
-                  onClick={() => setTheme(t)}
-                  className={`flex-1 py-2 rounded-xl font-semibold capitalize border transition-all ${
+                  onClick={() => setTheme(t as ThemeMode)}
+                  className={`flex-1 py-2.5 rounded-xl font-bold capitalize border transition-all cursor-pointer ${
                     theme === t
-                      ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-md"
                       : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                   }`}
                 >
@@ -369,7 +379,7 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setAiAssistantEnabled(!aiAssistantEnabled)}
-                  className={`w-10 h-5 rounded-full transition-colors relative ${aiAssistantEnabled ? "bg-blue-600" : "bg-slate-300"}`}
+                  className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer ${aiAssistantEnabled ? "bg-blue-600" : "bg-slate-300"}`}
                 >
                   <span className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition-transform ${aiAssistantEnabled ? "right-0.5" : "left-0.5"}`} />
                 </button>
@@ -380,7 +390,7 @@ export default function ProfilePage() {
                 <select
                   value={aiResponseStyle}
                   onChange={(e) => setAiResponseStyle(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 text-xs focus:outline-none focus:border-blue-500 font-medium"
                 >
                   <option value="concise">Concise (Bullet Summaries)</option>
                   <option value="balanced">Balanced (Standard Operational)</option>
@@ -393,7 +403,7 @@ export default function ProfilePage() {
                 <select
                   value={aiInsightPriority}
                   onChange={(e) => setAiInsightPriority(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 text-xs focus:outline-none focus:border-blue-500 font-medium"
                 >
                   <option value="critical">Critical Only</option>
                   <option value="important">Important & Critical</option>
@@ -429,7 +439,7 @@ export default function ProfilePage() {
             <h3 className="text-sm font-bold text-slate-900">Account Actions</h3>
             <button
               onClick={() => logout()}
-              className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-rose-600 font-semibold text-xs transition-colors flex items-center justify-center space-x-2"
+              className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-rose-600 font-semibold text-xs transition-colors flex items-center justify-center space-x-2 cursor-pointer"
             >
               <span>Sign Out of Account</span>
             </button>

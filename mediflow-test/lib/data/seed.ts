@@ -26,8 +26,8 @@ import type {
 
 export const DEMO_ORG: Organization = {
   id: "org_meridian",
-  name: "Meridian General Hospital (Demo)",
-  slug: "meridian-general-demo",
+  name: "Mediflow General Hospital (Demo)",
+  slug: "mediflow-general-demo",
   timezone: "Asia/Kolkata",
   createdAt: "2026-01-05T08:00:00.000Z",
 };

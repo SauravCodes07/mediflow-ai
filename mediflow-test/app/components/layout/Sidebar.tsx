@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "../brand/Logo";
 import { NAV_GROUPS } from "./navConfig";
+import { HOSPITAL_SHORT_NAME } from "@/lib/config/hospital";
 
 interface SidebarProps {
   open: boolean;
@@ -41,7 +42,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           </svg>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-xs font-bold text-white truncate">Meridian General</div>
+          <div className="text-xs font-bold text-white truncate">{HOSPITAL_SHORT_NAME}</div>
           <div className="text-[10px] text-slate-300 truncate">Main Campus · Org-01</div>
         </div>
       </div>

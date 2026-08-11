@@ -1,16 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { useOperationalData } from "@/lib/data/operational-context";
+import { PatientFlowLineChart } from "@/app/components/charts/PatientFlowLineChart";
+import { WardCapacityDonut } from "@/app/components/charts/WardCapacityDonut";
+import { HOSPITAL_NAME } from "@/lib/config/hospital";
 
 export default function CommandCenterDashboard() {
   const { user, profile } = useAuth();
-  const [timeframe, setTimeframe] = useState<"24h" | "7d" | "30d">("24h");
+  const {
+    admissionsToday,
+    occupiedBeds,
+    totalBeds,
+    bedOccupancyPct,
+    otUtilizationPct,
+    otActiveCases,
+    otCriticalDelays,
+    criticalAlertsCount,
+    secondsSinceUpdate,
+    timeRange,
+    setTimeRange,
+    getTimeSeries,
+  } = useOperationalData();
+
   const [hoveredOT, setHoveredOT] = useState<string | null>(null);
-  const [hoveredChartPoint, setHoveredChartPoint] = useState<{ x: number; y: number; label: string; value: string } | null>(null);
+
+  const chartSectionRef = useRef<HTMLDivElement>(null);
+  const wardSectionRef = useRef<HTMLDivElement>(null);
+  const otSectionRef = useRef<HTMLDivElement>(null);
 
   const displayName = profile?.name || user?.displayName || "Dr. Anika Rao";
+  const series = getTimeSeries();
+
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>) => {
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
 
   const OT_ROOMS = [
     {
@@ -60,7 +86,7 @@ export default function CommandCenterDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Welcome Banner Header */}
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#071B34] via-[#0B2545] to-[#0F325C] text-white border border-white/10 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
         <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -73,10 +99,10 @@ export default function CommandCenterDashboard() {
             Good morning, {displayName}
           </h1>
           <p className="text-sm text-slate-300 mt-1 max-w-xl">
-            Meridian General Hospital is running at 91% bed capacity with 4 active surgeries. 3 critical operational alerts require supervisor review.
+            {HOSPITAL_NAME} is running at {bedOccupancyPct}% bed capacity with {otActiveCases} active surgeries. {criticalAlertsCount} critical operational alerts require supervisor review.
           </p>
           <div className="text-[11px] text-slate-400 mt-2 font-medium">
-            ● Updated 12 seconds ago · Live operational feed
+            ● Updated {secondsSinceUpdate} seconds ago · Live operational feed
           </div>
         </div>
 
@@ -91,21 +117,24 @@ export default function CommandCenterDashboard() {
             href="/alerts"
             className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold border border-white/20 flex items-center space-x-2 transition-all"
           >
-            <span>View Alerts (3)</span>
+            <span>View Alerts ({criticalAlertsCount})</span>
           </Link>
         </div>
       </div>
 
-      {/* Top 4 Enterprise KPI Cards */}
+      {/* Top 4 Enterprise KPI Cards (Connected to Visualizations) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* KPI 1 */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all transform hover:-translate-y-1">
+        <div
+          onClick={() => scrollToSection(chartSectionRef)}
+          className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-400 transition-all transform hover:-translate-y-1 cursor-pointer group"
+        >
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>Active Admissions</span>
             <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-bold">↑ 12% today</span>
           </div>
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl font-extrabold text-slate-900">28</span>
+            <span className="text-3xl font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors">{admissionsToday}</span>
             <span className="text-xs text-slate-500">patients in queue</span>
           </div>
           <div className="mt-3 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
@@ -115,45 +144,54 @@ export default function CommandCenterDashboard() {
         </div>
 
         {/* KPI 2 */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-amber-300 transition-all transform hover:-translate-y-1">
+        <div
+          onClick={() => scrollToSection(wardSectionRef)}
+          className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-amber-400 transition-all transform hover:-translate-y-1 cursor-pointer group"
+        >
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>Ward Bed Occupancy</span>
-            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold">91% Occupied</span>
+            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold">{bedOccupancyPct}% Occupied</span>
           </div>
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl font-extrabold text-slate-900">45 / 48</span>
+            <span className="text-3xl font-extrabold text-slate-900 group-hover:text-amber-600 transition-colors">{occupiedBeds} / {totalBeds}</span>
             <span className="text-xs text-slate-500">beds occupied</span>
           </div>
           <div className="mt-3 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
-            <span className="text-emerald-600 font-semibold">3 Beds Free</span>
+            <span className="text-emerald-600 font-semibold">{totalBeds - occupiedBeds} Beds Free</span>
             <span>Ward A & C high</span>
           </div>
         </div>
 
         {/* KPI 3 */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all transform hover:-translate-y-1">
+        <div
+          onClick={() => scrollToSection(otSectionRef)}
+          className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-400 transition-all transform hover:-translate-y-1 cursor-pointer group"
+        >
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>OT Utilization</span>
-            <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[11px] font-bold">82% Active</span>
+            <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[11px] font-bold">{otUtilizationPct}% Active</span>
           </div>
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl font-extrabold text-slate-900">4 Cases</span>
+            <span className="text-3xl font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors">{otActiveCases} Cases</span>
             <span className="text-xs text-slate-500">active surgeries</span>
           </div>
           <div className="mt-3 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
             <span>8 Upcoming Today</span>
-            <span className="font-semibold text-rose-600">1 Critical Delay</span>
+            <span className="font-semibold text-rose-600">{otCriticalDelays} Critical Delay</span>
           </div>
         </div>
 
         {/* KPI 4 */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-rose-300 transition-all transform hover:-translate-y-1">
+        <div
+          onClick={() => scrollToSection(otSectionRef)}
+          className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-rose-400 transition-all transform hover:-translate-y-1 cursor-pointer group"
+        >
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>Active Alerts</span>
-            <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[11px] font-bold">3 Critical</span>
+            <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[11px] font-bold">{criticalAlertsCount} Critical</span>
           </div>
           <div className="flex items-baseline space-x-2">
-            <span className="text-3xl font-extrabold text-slate-900">3 Alerts</span>
+            <span className="text-3xl font-extrabold text-slate-900 group-hover:text-rose-600 transition-colors">{criticalAlertsCount} Alerts</span>
             <span className="text-xs text-slate-500">requiring action</span>
           </div>
           <div className="mt-3 flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
@@ -163,11 +201,11 @@ export default function CommandCenterDashboard() {
         </div>
       </div>
 
-      {/* Row 1: Patient Flow Analytics + Hospital Capacity */}
+      {/* Row 1: Interactive Patient Flow Line Chart + Ward Capacity Donut */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Patient Flow Trends Chart Box */}
-        <div className="lg:col-span-2 p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between relative">
-          <div className="flex items-center justify-between mb-6">
+        {/* Patient Flow Line Chart Component */}
+        <div ref={chartSectionRef} className="lg:col-span-2 p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
             <div>
               <h2 className="text-base font-bold text-slate-900">Patient Flow Analytics</h2>
               <p className="text-xs text-slate-500">Admissions, discharges and ward transfers over time</p>
@@ -176,9 +214,9 @@ export default function CommandCenterDashboard() {
               {(["24h", "7d", "30d"] as const).map((t) => (
                 <button
                   key={t}
-                  onClick={() => setTimeframe(t)}
-                  className={`px-3 py-1 rounded-lg font-semibold transition-all ${
-                    timeframe === t ? "bg-white text-blue-600 shadow-sm" : "text-slate-600 hover:text-slate-900"
+                  onClick={() => setTimeRange(t)}
+                  className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
+                    timeRange === t ? "bg-white text-blue-600 shadow-sm" : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   {t.toUpperCase()}
@@ -187,126 +225,23 @@ export default function CommandCenterDashboard() {
             </div>
           </div>
 
-          {/* SVG Visual Flow Analytics Chart with Hover Crosshair Tooltip */}
-          <div className="w-full h-48 my-2 relative">
-            <svg className="w-full h-full overflow-visible" viewBox="0 0 500 150">
-              <defs>
-                <linearGradient id="flow_admissions" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#1769E0" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#1769E0" stopOpacity="0.0" />
-                </linearGradient>
-                <linearGradient id="flow_discharges" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#16A34A" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#16A34A" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-
-              {/* Grid Lines */}
-              <line x1="0" y1="30" x2="500" y2="30" stroke="#F1F5F9" strokeWidth="1" />
-              <line x1="0" y1="75" x2="500" y2="75" stroke="#F1F5F9" strokeWidth="1" />
-              <line x1="0" y1="120" x2="500" y2="120" stroke="#F1F5F9" strokeWidth="1" />
-
-              {/* Admissions Area */}
-              <path
-                d="M 0 110 Q 70 40 140 70 T 280 30 T 420 80 L 500 40 L 500 140 L 0 140 Z"
-                fill="url(#flow_admissions)"
-              />
-              <path
-                d="M 0 110 Q 70 40 140 70 T 280 30 T 420 80 L 500 40"
-                fill="none"
-                stroke="#1769E0"
-                strokeWidth="3"
-              />
-
-              {/* Interactive Data Points */}
-              {[
-                { x: 70, y: 55, label: "08:00 AM", value: "18 Admissions (+12%)" },
-                { x: 140, y: 70, label: "11:00 AM", value: "24 Admissions (+15%)" },
-                { x: 280, y: 30, label: "02:00 PM (Peak)", value: "32 Admissions (+22%)" },
-                { x: 420, y: 80, label: "05:00 PM", value: "21 Admissions (+8%)" },
-              ].map((pt, idx) => (
-                <circle
-                  key={idx}
-                  cx={pt.x}
-                  cy={pt.y}
-                  r="5"
-                  className="fill-blue-600 stroke-white stroke-2 hover:r-7 cursor-pointer transition-all"
-                  onMouseEnter={() => setHoveredChartPoint(pt)}
-                  onMouseLeave={() => setHoveredChartPoint(null)}
-                />
-              ))}
-            </svg>
-
-            {/* Custom Chart Dark Tooltip */}
-            {hoveredChartPoint && (
-              <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 p-3 rounded-xl bg-[#071B34] text-white shadow-2xl border border-white/20 text-xs space-y-1 animate-in fade-in duration-150">
-                <div className="font-bold text-cyan-300">{hoveredChartPoint.label}</div>
-                <div className="text-slate-200">{hoveredChartPoint.value}</div>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center justify-center space-x-6 text-xs pt-4 border-t border-slate-100">
-            <div className="flex items-center space-x-2">
-              <span className="w-3 h-3 rounded-full bg-blue-600" />
-              <span className="font-semibold text-slate-700">Admissions Queue</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-3 h-3 rounded-full bg-emerald-600" />
-              <span className="font-semibold text-slate-700">Discharges Completed</span>
-            </div>
-          </div>
+          <PatientFlowLineChart series={series} height={240} />
         </div>
 
-        {/* Hospital Ward Capacity Donut Visualization */}
-        <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+        {/* Multi-Segment Ward Capacity Donut Component */}
+        <div ref={wardSectionRef} className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
           <div>
-            <h2 className="text-base font-bold text-slate-900 mb-1">Ward Capacity</h2>
-            <p className="text-xs text-slate-500">Live bed utilization across wards</p>
+            <h2 className="text-base font-bold text-slate-900 mb-0.5">Ward Capacity</h2>
+            <p className="text-xs text-slate-500">Two-way interactive donut & bed occupancy sync</p>
           </div>
 
-          <div className="my-6 flex items-center justify-center relative">
-            <svg className="w-40 h-40 transform -rotate-90" viewBox="0 0 36 36">
-              <path
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none"
-                stroke="#E2E8F0"
-                strokeWidth="3.5"
-              />
-              <path
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none"
-                stroke="#1769E0"
-                strokeWidth="3.5"
-                strokeDasharray="91, 100"
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span className="text-2xl font-extrabold text-slate-900">91%</span>
-              <span className="text-[10px] text-slate-500 font-semibold uppercase">Total Occupancy</span>
-            </div>
-          </div>
-
-          <div className="space-y-2 text-xs">
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:border-blue-300 transition-colors">
-              <span className="font-semibold text-slate-700">Ward A (General Medicine)</span>
-              <span className="font-bold text-blue-600">82%</span>
-            </div>
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:border-emerald-300 transition-colors">
-              <span className="font-semibold text-slate-700">Ward B (Surgical ICU)</span>
-              <span className="font-bold text-emerald-600">61%</span>
-            </div>
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:border-amber-300 transition-colors">
-              <span className="font-semibold text-slate-700">Ward C (High Dependency)</span>
-              <span className="font-bold text-amber-600">91%</span>
-            </div>
-          </div>
+          <WardCapacityDonut />
         </div>
       </div>
 
       {/* Row 2: Real-time OT Procedure Visual Timeline */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
+      <div ref={otSectionRef} className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm">
+        <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
           <div>
             <h2 className="text-lg font-bold text-slate-900">Operating Theatre Real-Time Timeline</h2>
             <p className="text-xs text-slate-500">Live procedure schedules, turnover status, and room delays</p>
