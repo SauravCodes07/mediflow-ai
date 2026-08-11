@@ -1,78 +1,43 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
 
 /* ==========================================================================
-   Mediflow-AI Enterprise Design System
-   Color Palette: Deep Navy #071D35, Secondary Navy #0B2748, Primary #1769E0,
-   Bright Blue #2F80ED, Background #F4F7FB, Surface #FFFFFF, Border #DCE5F0,
-   Text #102A43, Secondary Text #607D9A, Success #16A34A, Warning #F59E0B,
-   Critical #DC2626, AI Accent #7C5CFC.
+   MEDIFLOW-AI ENTERPRISE DESIGN SYSTEM
+   Primary Navy: #071B34 | Secondary Navy: #0B2545 | Primary Blue: #1677FF
+   Bright Blue: #2F80ED | Background: #F5F8FC | Text: #0B1F3A
+   Muted: #64748B | Success: #16A34A | Warning: #F59E0B | Danger: #EF4444
+   Borders: #D9E3F0
    ========================================================================== */
 
 :root {
   /* Brand Core */
-  --color-primary: #1769E0;
-  --color-primary-bright: #2F80ED;
-  --color-primary-dark: #0F4DAA;
-  --color-primary-light: #EBF3FE;
+  --color-primary-navy: #071B34;
+  --color-secondary-navy: #0B2545;
+  --color-primary-blue: #1677FF;
+  --color-bright-blue: #2F80ED;
   
-  --color-navy: #071D35;
-  --color-navy-secondary: #0B2748;
-  --color-navy-card: #0F325C;
-
-  /* Neutral Surfaces */
-  --color-bg: #F4F7FB;
+  /* Surfaces & Backgrounds */
+  --color-bg: #F5F8FC;
   --color-surface: #FFFFFF;
-  --color-surface-hover: #F8FAFC;
-  --color-surface-subtle: #EDF2F7;
-  --color-border: #DCE5F0;
-  --color-border-hover: #BCCFDF;
+  --color-surface-hover: #F1F5F9;
+  --color-border: #D9E3F0;
 
   /* Typography */
-  --color-text: #102A43;
-  --color-text-secondary: #607D9A;
-  --color-text-muted: #829AB1;
-  --color-text-inverse: #FFFFFF;
+  --color-text-main: #0B1F3A;
+  --color-text-muted: #64748B;
+  --color-text-white: #FFFFFF;
 
-  /* Status Colors */
+  /* Feedback */
   --color-success: #16A34A;
-  --color-success-bg: #DCFCE7;
   --color-warning: #F59E0B;
-  --color-warning-bg: #FEF3C7;
-  --color-critical: #DC2626;
-  --color-critical-bg: #FEE2E2;
-  --color-info: #0284C7;
-  --color-info-bg: #E0F2FE;
+  --color-danger: #EF4444;
 
-  /* AI Accent */
-  --color-ai: #7C5CFC;
-  --color-ai-bg: #F3E8FF;
+  /* Typography System */
+  --font-sans: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  /* Elevation */
-  --shadow-xs: 0 1px 2px rgba(16, 42, 67, 0.04);
-  --shadow-sm: 0 2px 4px rgba(16, 42, 67, 0.06);
-  --shadow-md: 0 6px 16px rgba(16, 42, 67, 0.08);
-  --shadow-lg: 0 16px 32px rgba(16, 42, 67, 0.12);
-
-  /* Spacing */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-
-  /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-full: 9999px;
-
-  /* Fonts */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* Dimensions */
   --topbar-h: 68px;
-  --sidebar-w: 260px;
+  --sidebar-w: 265px;
 }
 
 * {
@@ -83,25 +48,24 @@ html, body {
   height: 100%;
   max-width: 100vw;
   overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
-  min-height: 100%;
   font-family: var(--font-sans);
-  color: var(--color-text);
-  background: var(--color-bg);
+  color: var(--color-text-main);
+  background-color: var(--color-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-button {
-  font-family: inherit;
+/* SVG Global Safety Constraint: Prevent oversized SVG explosions */
+svg {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  max-width: 100%;
 }
 
 /* Custom Scrollbars */
@@ -120,7 +84,7 @@ button {
   background: #94A3B8;
 }
 
-/* Hide scrollbar utility */
+/* Scrollbar Hide Utility */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -129,50 +93,17 @@ button {
   scrollbar-width: none;
 }
 
-/* Typography Classes */
-.text-page-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  color: var(--color-text);
-  line-height: 1.25;
-}
-
-.text-section-title {
-  font-size: 1.25rem;
-  font-weight: 650;
-  letter-spacing: -0.015em;
-  color: var(--color-text);
-}
-
-.text-card-title {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.text-body {
-  font-size: 0.9375rem;
-  color: var(--color-text);
-  line-height: 1.6;
-}
-
-.text-meta {
-  font-size: 0.8125rem;
-  color: var(--color-text-secondary);
-}
-
-/* App Shell Layout */
+/* Base Layout Classes */
 .app-shell {
   display: flex;
   min-height: 100vh;
-  background: var(--color-bg);
+  background-color: var(--color-bg);
 }
 
 .sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
-  background: var(--color-navy);
+  background-color: var(--color-primary-navy);
   color: #FFFFFF;
   display: flex;
   flex-direction: column;
@@ -184,15 +115,15 @@ button {
   height: var(--topbar-h);
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: 0 var(--space-5);
+  gap: 12px;
+  padding: 0 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-4) var(--space-3);
+  padding: 16px 12px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -204,32 +135,32 @@ button {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.45);
-  padding: var(--space-4) var(--space-3) var(--space-1);
+  padding: 16px 12px 6px;
 }
 
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: 9px 12px;
-  border-radius: var(--radius-md);
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.72);
-  transition: all 0.18s ease;
+  color: rgba(255, 255, 255, 0.75);
+  transition: all 0.2s ease;
 }
 
 .sidebar-link:hover {
   background: rgba(255, 255, 255, 0.08);
   color: #FFFFFF;
-  transform: translateX(2px);
+  transform: translateX(3px);
 }
 
 .sidebar-link.active {
-  background: var(--color-primary);
+  background: var(--color-primary-blue);
   color: #FFFFFF;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(23, 105, 224, 0.3);
+  box-shadow: 0 4px 14px rgba(22, 119, 255, 0.35);
 }
 
 .main-col {
@@ -242,32 +173,65 @@ button {
 .topbar {
   height: var(--topbar-h);
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--space-6);
+  padding: 0 24px;
   position: sticky;
   top: 0;
   z-index: 20;
 }
 
 .content {
-  padding: var(--space-6) var(--space-8);
+  padding: 28px 32px;
   flex: 1;
 }
 
+/* Premium Card & Button Elevate System */
+.mediflow-card {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mediflow-card:hover {
+  transform: translateY(-6px);
+  border-color: #A3C5F5;
+  box-shadow: 0 16px 32px -8px rgba(11, 31, 58, 0.12), 0 0 0 1px rgba(22, 119, 255, 0.1);
+}
+
+.mediflow-btn-primary {
+  background: linear-gradient(135deg, #1677FF 0%, #2F80ED 100%);
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 10px 20px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(22, 119, 255, 0.25);
+}
+
+.mediflow-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(22, 119, 255, 0.4);
+}
+
+/* Mobile Responsive Overrides */
 @media (max-width: 1024px) {
   .sidebar {
     position: fixed;
     inset: 0 auto 0 0;
-    z-index: 40;
+    z-index: 50;
     transform: translateX(-100%);
   }
   .sidebar.open {
     transform: translateX(0);
   }
   .content {
-    padding: var(--space-4) var(--space-4);
+    padding: 16px;
+  }
+  .topbar {
+    padding: 0 16px;
   }
 }

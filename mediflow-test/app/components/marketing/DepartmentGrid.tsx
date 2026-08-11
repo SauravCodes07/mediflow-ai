@@ -9,7 +9,7 @@ const DEPARTMENTS = [
     href: "/admissions",
     color: "blue",
     iconBg: "bg-blue-500/20 text-blue-400 border-blue-400/30",
-    hoverBorder: "hover:border-blue-500/50 hover:shadow-[0_0_25px_rgba(22,119,255,0.2)]",
+    hoverBorder: "hover:border-blue-500/50 hover:shadow-[0_8px_30px_rgba(22,119,255,0.25)]",
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -22,7 +22,7 @@ const DEPARTMENTS = [
     href: "/wards",
     color: "teal",
     iconBg: "bg-teal-500/20 text-teal-400 border-teal-400/30",
-    hoverBorder: "hover:border-teal-500/50 hover:shadow-[0_0_25px_rgba(20,217,181,0.2)]",
+    hoverBorder: "hover:border-teal-500/50 hover:shadow-[0_8px_30px_rgba(20,184,166,0.25)]",
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -34,8 +34,8 @@ const DEPARTMENTS = [
     description: "Streamline consultations and reduce waiting times.",
     href: "/patients",
     color: "purple",
-    iconBg: "bg-purple-500/20 text-purple-400 border-purple-400/30",
-    hoverBorder: "hover:border-purple-500/50 hover:shadow-[0_0_25px_rgba(139,92,246,0.2)]",
+    iconBg: "bg-indigo-500/20 text-indigo-400 border-indigo-400/30",
+    hoverBorder: "hover:border-indigo-500/50 hover:shadow-[0_8px_30px_rgba(99,102,241,0.25)]",
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -47,8 +47,8 @@ const DEPARTMENTS = [
     description: "Real-time OT scheduling and workflows.",
     href: "/ot",
     color: "orange",
-    iconBg: "bg-orange-500/20 text-orange-400 border-orange-400/30",
-    hoverBorder: "hover:border-orange-500/50 hover:shadow-[0_0_25px_rgba(255,159,67,0.2)]",
+    iconBg: "bg-amber-500/20 text-amber-400 border-amber-400/30",
+    hoverBorder: "hover:border-amber-500/50 hover:shadow-[0_8px_30px_rgba(245,158,11,0.25)]",
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -61,7 +61,7 @@ const DEPARTMENTS = [
     href: "/analytics",
     color: "cyan",
     iconBg: "bg-cyan-500/20 text-cyan-400 border-cyan-400/30",
-    hoverBorder: "hover:border-cyan-500/50 hover:shadow-[0_0_25px_rgba(24,216,232,0.2)]",
+    hoverBorder: "hover:border-cyan-500/50 hover:shadow-[0_8px_30px_rgba(6,182,212,0.25)]",
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -74,7 +74,7 @@ const DEPARTMENTS = [
     href: "/alerts",
     color: "red",
     iconBg: "bg-rose-500/20 text-rose-400 border-rose-400/30",
-    hoverBorder: "hover:border-rose-500/50 hover:shadow-[0_0_25px_rgba(255,77,94,0.2)]",
+    hoverBorder: "hover:border-rose-500/50 hover:shadow-[0_8px_30px_rgba(244,63,94,0.25)]",
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -85,7 +85,7 @@ const DEPARTMENTS = [
 
 export function DepartmentGrid() {
   return (
-    <section id="departments" className="py-24 bg-[#020B1C] relative overflow-hidden">
+    <section id="departments" className="py-24 bg-[#071B34] relative overflow-hidden">
       {/* Background glow effects */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
 
@@ -109,7 +109,7 @@ export function DepartmentGrid() {
             <Link
               key={dept.title}
               href={dept.href}
-              className={`p-6 sm:p-7 rounded-3xl bg-[#0A1B35] border border-white/10 ${dept.hoverBorder} transition-all transform hover:-translate-y-1 group flex items-start justify-between space-x-4`}
+              className={`p-6 sm:p-7 rounded-3xl bg-[#0B2545] border border-white/10 ${dept.hoverBorder} transition-all transform hover:-translate-y-1.5 group flex items-start justify-between space-x-4`}
             >
               <div className="flex items-start space-x-4">
                 <div
@@ -121,7 +121,7 @@ export function DepartmentGrid() {
                   <h3 className="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors mb-1.5">
                     {dept.title}
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                     {dept.description}
                   </p>
                 </div>
