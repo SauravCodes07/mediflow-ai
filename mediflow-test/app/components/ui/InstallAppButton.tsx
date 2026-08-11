@@ -20,6 +20,18 @@ export function InstallAppButton({ variant = "navbar", className = "" }: Install
   const [deviceType, setDeviceType] = useState<"ios" | "android" | "desktop" | "other">("desktop");
 
   useEffect(() => {
+    // ── Register Service Worker (required for desktop PWA install prompt) ──
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .then((reg) => {
+          console.log("[PWA] Service worker registered:", reg.scope);
+        })
+        .catch((err) => {
+          console.warn("[PWA] Service worker registration failed:", err);
+        });
+    }
+
     // Check if app is already running in standalone mode (installed)
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
@@ -58,6 +70,7 @@ export function InstallAppButton({ variant = "navbar", className = "" }: Install
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
+
 
   const handleInstallClick = async () => {
     if (isInstalled) {

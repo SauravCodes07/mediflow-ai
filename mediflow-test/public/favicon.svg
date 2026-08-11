@@ -1,36 +1,34 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" rx="8" fill="#071B34"/>
-  {/* Heart Outline */}
+  <defs>
+    <linearGradient id="bg_grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0D3B80"/>
+      <stop offset="1" stop-color="#071B34"/>
+    </linearGradient>
+    <linearGradient id="heart_grad" x1="5" y1="5" x2="27" y2="27" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#1677FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="url(#bg_grad)"/>
   <path
-    d="M16 26.5C16 26.5 5 19.8 5 12.5C5 8.8 7.9 5.8 11.6 5.8C13.8 5.8 15.7 6.9 16 8.5C16.3 6.9 18.2 5.8 20.4 5.8C24.1 5.8 27 8.8 27 12.5C27 19.8 16 26.5 16 26.5Z"
-    stroke="url(#fav_grad)"
+    d="M16 26C16 26 5 19.5 5 12.5C5 8.9 7.9 6 11.5 6C13.6 6 15.5 7.1 16 8.6C16.5 7.1 18.4 6 20.5 6C24.1 6 27 8.9 27 12.5C27 19.5 16 26 16 26Z"
+    fill="url(#heart_grad)"
+    opacity="0.3"
+  />
+  <path
+    d="M6 14H10L12.5 9L16 20L19.5 11L21.5 14H26"
+    stroke="#FFFFFF"
+    stroke-width="2.8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+  <path
+    d="M16 26C16 26 5 19.5 5 12.5C5 8.9 7.9 6 11.5 6C13.6 6 15.5 7.1 16 8.6C16.5 7.1 18.4 6 20.5 6C24.1 6 27 8.9 27 12.5C27 19.5 16 26 16 26Z"
+    stroke="#22D3EE"
     stroke-width="2.2"
     stroke-linecap="round"
     stroke-linejoin="round"
     fill="none"
   />
-  {/* Pulse ECG */}
-  <path
-    d="M7 14.5H10.5L12.5 10.5L15.5 18.5L18.5 12.5L20 14.5H25"
-    stroke="#18D8E8"
-    stroke-width="1.8"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    fill="none"
-  />
-  {/* Plus symbol */}
-  <path
-    d="M23 20.5V24.5M21 22.5H25"
-    stroke="#1677FF"
-    stroke-width="1.8"
-    stroke-linecap="round"
-    fill="none"
-  />
-  <defs>
-    <linearGradient id="fav_grad" x1="5" y1="5.8" x2="27" y2="26.5" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#18D8E8" />
-      <stop offset="0.5" stop-color="#1677FF" />
-      <stop offset="1" stop-color="#071B34" />
-    </linearGradient>
-  </defs>
 </svg>
