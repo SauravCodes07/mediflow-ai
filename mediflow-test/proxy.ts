@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public paths allowed without authentication
@@ -18,8 +18,6 @@ export function middleware(request: NextRequest) {
 
   // If trying to access protected dashboard route without session
   if (!isPublicPath && !sessionToken) {
-    // In production Firebase auth (Step 21/22), client-side auth context handles guard redirects,
-    // while middleware allows pass-through with header signals.
     const response = NextResponse.next();
     response.headers.set("x-mediflow-protected", "true");
     return response;
@@ -30,13 +28,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public assets
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

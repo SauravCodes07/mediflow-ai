@@ -326,16 +326,18 @@ export function PatientFlowLineChart({
             return (
               <g key={pt.label} className="pointer-events-none">
                 {/* X Axis Labels */}
-                <text
-                  x={x}
-                  y={chartHeight - 10}
-                  textAnchor="middle"
-                  fill={isActive ? "#1677FF" : "#64748B"}
-                  fontSize={isActive ? "11" : "10"}
-                  fontWeight={isActive ? "800" : "600"}
-                >
-                  {pt.label}
-                </text>
+                {(chartData.length <= 12 || idx % Math.ceil(chartData.length / 8) === 0 || idx === chartData.length - 1 || isActive) && (
+                  <text
+                    x={x}
+                    y={chartHeight - 10}
+                    textAnchor="middle"
+                    fill={isActive ? "#1677FF" : "#64748B"}
+                    fontSize={isActive ? "11" : "10"}
+                    fontWeight={isActive ? "800" : "600"}
+                  >
+                    {pt.label}
+                  </text>
+                )}
 
                 {/* Series 1 Point */}
                 {visibleSeries.s1 && (

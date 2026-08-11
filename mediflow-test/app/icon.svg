@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" rx="8" fill="#071B34"/>
+  <path
+    d="M16 26.5C16 26.5 5 19.8 5 12.5C5 8.8 7.9 5.8 11.6 5.8C13.8 5.8 15.7 6.9 16 8.5C16.3 6.9 18.2 5.8 20.4 5.8C24.1 5.8 27 8.8 27 12.5C27 19.8 16 26.5 16 26.5Z"
+    stroke="url(#app_fav_grad)"
+    stroke-width="2.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+  <path
+    d="M7 14.5H10.5L12.5 10.5L15.5 18.5L18.5 12.5L20 14.5H25"
+    stroke="#18D8E8"
+    stroke-width="1.8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+  <path
+    d="M23 20.5V24.5M21 22.5H25"
+    stroke="#1677FF"
+    stroke-width="1.8"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <defs>
+    <linearGradient id="app_fav_grad" x1="5" y1="5.8" x2="27" y2="26.5" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#18D8E8" />
+      <stop offset="0.5" stop-color="#1677FF" />
+      <stop offset="1" stop-color="#071B34" />
+    </linearGradient>
+  </defs>
+</svg>

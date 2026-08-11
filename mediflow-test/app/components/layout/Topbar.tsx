@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { NotificationCenter } from "./NotificationCenter";
+import { InstallAppButton } from "../ui/InstallAppButton";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/lib/theme-context";
 import { HOSPITAL_NAME } from "@/lib/config/hospital";
@@ -45,7 +46,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
         </div>
       </div>
 
-      <div className="flex items-center space-x-3 sm:space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-3">
         {/* Real-time Status Indicator */}
         <div className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold">
           <span className="flex h-2 w-2 relative">
@@ -55,6 +56,9 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           <span className="hidden md:inline">● LIVE · System operational</span>
           <span className="md:hidden">● LIVE</span>
         </div>
+
+        {/* Install App Button */}
+        <InstallAppButton variant="compact" />
 
         {/* Global Theme Toggle Button */}
         <button
