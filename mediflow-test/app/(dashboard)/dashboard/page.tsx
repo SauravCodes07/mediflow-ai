@@ -8,6 +8,7 @@ export default function CommandCenterDashboard() {
   const { user, profile } = useAuth();
   const [timeframe, setTimeframe] = useState<"24h" | "7d" | "30d">("24h");
   const [hoveredOT, setHoveredOT] = useState<string | null>(null);
+  const [hoveredChartPoint, setHoveredChartPoint] = useState<{ x: number; y: number; label: string; value: string } | null>(null);
 
   const displayName = profile?.name || user?.displayName || "Dr. Anika Rao";
 
@@ -61,12 +62,12 @@ export default function CommandCenterDashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome Banner Header */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#071D35] via-[#0B2748] to-[#0F325C] text-white border border-white/10 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#071B34] via-[#0B2545] to-[#0F325C] text-white border border-white/10 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
         <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
         <div>
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-semibold mb-3">
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-            <span>Real-time Operational Command Center</span>
+            <span>Real-time Operational Command Center · Live Simulation</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
             Good morning, {displayName}
@@ -74,6 +75,9 @@ export default function CommandCenterDashboard() {
           <p className="text-sm text-slate-300 mt-1 max-w-xl">
             Meridian General Hospital is running at 91% bed capacity with 4 active surgeries. 3 critical operational alerts require supervisor review.
           </p>
+          <div className="text-[11px] text-slate-400 mt-2 font-medium">
+            ● Updated 12 seconds ago · Live operational feed
+          </div>
         </div>
 
         <div className="flex items-center space-x-3 shrink-0">
@@ -95,7 +99,7 @@ export default function CommandCenterDashboard() {
       {/* Top 4 Enterprise KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* KPI 1 */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all transform hover:-translate-y-1">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>Active Admissions</span>
             <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-bold">↑ 12% today</span>
@@ -111,7 +115,7 @@ export default function CommandCenterDashboard() {
         </div>
 
         {/* KPI 2 */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-amber-300 transition-all transform hover:-translate-y-1">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>Ward Bed Occupancy</span>
             <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold">91% Occupied</span>
@@ -127,7 +131,7 @@ export default function CommandCenterDashboard() {
         </div>
 
         {/* KPI 3 */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all transform hover:-translate-y-1">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>OT Utilization</span>
             <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[11px] font-bold">82% Active</span>
@@ -143,7 +147,7 @@ export default function CommandCenterDashboard() {
         </div>
 
         {/* KPI 4 */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-rose-300 transition-all transform hover:-translate-y-1">
           <div className="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">
             <span>Active Alerts</span>
             <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[11px] font-bold">3 Critical</span>
@@ -162,7 +166,7 @@ export default function CommandCenterDashboard() {
       {/* Row 1: Patient Flow Analytics + Hospital Capacity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Patient Flow Trends Chart Box */}
-        <div className="lg:col-span-2 p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div className="lg:col-span-2 p-6 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between relative">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-base font-bold text-slate-900">Patient Flow Analytics</h2>
@@ -183,16 +187,16 @@ export default function CommandCenterDashboard() {
             </div>
           </div>
 
-          {/* SVG Visual Flow Analytics Chart */}
+          {/* SVG Visual Flow Analytics Chart with Hover Crosshair Tooltip */}
           <div className="w-full h-48 my-2 relative">
             <svg className="w-full h-full overflow-visible" viewBox="0 0 500 150">
               <defs>
                 <linearGradient id="flow_admissions" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#1769E0" stopOpacity="0.3" />
+                  <stop offset="0%" stopColor="#1769E0" stopOpacity="0.35" />
                   <stop offset="100%" stopColor="#1769E0" stopOpacity="0.0" />
                 </linearGradient>
                 <linearGradient id="flow_discharges" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#16A34A" stopOpacity="0.3" />
+                  <stop offset="0%" stopColor="#16A34A" stopOpacity="0.35" />
                   <stop offset="100%" stopColor="#16A34A" stopOpacity="0.0" />
                 </linearGradient>
               </defs>
@@ -214,19 +218,32 @@ export default function CommandCenterDashboard() {
                 strokeWidth="3"
               />
 
-              {/* Discharges Area */}
-              <path
-                d="M 0 130 Q 70 90 140 110 T 280 85 T 420 110 L 500 90 L 500 140 L 0 140 Z"
-                fill="url(#flow_discharges)"
-              />
-              <path
-                d="M 0 130 Q 70 90 140 110 T 280 85 T 420 110 L 500 90"
-                fill="none"
-                stroke="#16A34A"
-                strokeWidth="2.5"
-                strokeDasharray="4 4"
-              />
+              {/* Interactive Data Points */}
+              {[
+                { x: 70, y: 55, label: "08:00 AM", value: "18 Admissions (+12%)" },
+                { x: 140, y: 70, label: "11:00 AM", value: "24 Admissions (+15%)" },
+                { x: 280, y: 30, label: "02:00 PM (Peak)", value: "32 Admissions (+22%)" },
+                { x: 420, y: 80, label: "05:00 PM", value: "21 Admissions (+8%)" },
+              ].map((pt, idx) => (
+                <circle
+                  key={idx}
+                  cx={pt.x}
+                  cy={pt.y}
+                  r="5"
+                  className="fill-blue-600 stroke-white stroke-2 hover:r-7 cursor-pointer transition-all"
+                  onMouseEnter={() => setHoveredChartPoint(pt)}
+                  onMouseLeave={() => setHoveredChartPoint(null)}
+                />
+              ))}
             </svg>
+
+            {/* Custom Chart Dark Tooltip */}
+            {hoveredChartPoint && (
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 p-3 rounded-xl bg-[#071B34] text-white shadow-2xl border border-white/20 text-xs space-y-1 animate-in fade-in duration-150">
+                <div className="font-bold text-cyan-300">{hoveredChartPoint.label}</div>
+                <div className="text-slate-200">{hoveredChartPoint.value}</div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-center space-x-6 text-xs pt-4 border-t border-slate-100">
@@ -237,10 +254,6 @@ export default function CommandCenterDashboard() {
             <div className="flex items-center space-x-2">
               <span className="w-3 h-3 rounded-full bg-emerald-600" />
               <span className="font-semibold text-slate-700">Discharges Completed</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="w-3 h-3 rounded-full bg-purple-600" />
-              <span className="font-semibold text-slate-700">OT Transfers</span>
             </div>
           </div>
         </div>
@@ -275,16 +288,16 @@ export default function CommandCenterDashboard() {
           </div>
 
           <div className="space-y-2 text-xs">
-            <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50">
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:border-blue-300 transition-colors">
               <span className="font-semibold text-slate-700">Ward A (General Medicine)</span>
               <span className="font-bold text-blue-600">82%</span>
             </div>
-            <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50">
-              <span className="font-semibold text-slate-700">Ward B (Surgical Intensive)</span>
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:border-emerald-300 transition-colors">
+              <span className="font-semibold text-slate-700">Ward B (Surgical ICU)</span>
               <span className="font-bold text-emerald-600">61%</span>
             </div>
-            <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50">
-              <span className="font-semibold text-slate-700">Ward C (ICU & High Dependency)</span>
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:border-amber-300 transition-colors">
+              <span className="font-semibold text-slate-700">Ward C (High Dependency)</span>
               <span className="font-bold text-amber-600">91%</span>
             </div>
           </div>
@@ -346,7 +359,7 @@ export default function CommandCenterDashboard() {
 
               {/* Rich Custom Hover Tooltip */}
               {hoveredOT === ot.id && (
-                <div className="absolute left-6 bottom-full mb-2 z-30 w-72 p-4 rounded-2xl bg-[#071D35] text-white shadow-2xl border border-white/20 text-xs space-y-2 pointer-events-none animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute left-6 bottom-full mb-2 z-30 w-72 p-4 rounded-2xl bg-[#071B34] text-white shadow-2xl border border-white/20 text-xs space-y-2 pointer-events-none animate-in fade-in zoom-in-95 duration-150">
                   <div className="font-bold text-sm text-cyan-300">{ot.name} — Detailed Status</div>
                   <div><span className="text-slate-400">Procedure:</span> {ot.procedure}</div>
                   <div><span className="text-slate-400">Lead Surgeon:</span> {ot.surgeon}</div>

@@ -2,11 +2,7 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   MEDIFLOW-AI ENTERPRISE DESIGN SYSTEM & GLOBAL STYLES
-   Primary Navy: #071B34 | Secondary Navy: #0B2545 | Primary Blue: #1677FF
-   Bright Blue: #2F80ED | Background: #F5F8FC | Text: #0B1F3A
-   Muted: #64748B | Success: #16A34A | Warning: #F59E0B | Danger: #EF4444
-   Borders: #D9E3F0
+   MEDIFLOW-AI ENTERPRISE DESIGN SYSTEM & GLOBAL ANIMATIONS
    ========================================================================== */
 
 :root {
@@ -93,6 +89,25 @@ svg {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Keyframe Animations for Live Platform Interactivity */
+@keyframes cardFloatSlow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes livePulseGlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.15); }
+}
+
+.animate-float-slow {
+  animation: cardFloatSlow 6s ease-in-out infinite;
+}
+
+.animate-live-pulse {
+  animation: livePulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Base App Shell Layout */
