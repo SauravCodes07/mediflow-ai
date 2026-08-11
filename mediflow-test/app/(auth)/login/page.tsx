@@ -6,18 +6,20 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { Logo } from "@/app/components/brand/Logo";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function formatFirebaseError(code: string, fallback: string): string {
   if (code.includes("auth/unauthorized-domain")) {
     return "Domain not authorized in Firebase Auth settings. Please add your domain to Firebase console.";
   }
   if (code.includes("auth/invalid-credential") || code.includes("auth/wrong-password") || code.includes("auth/user-not-found")) {
-    return "Invalid work email or password. Please verify your credentials.";
+    return "Incorrect email or password. Please verify your credentials.";
   }
   if (code.includes("auth/email-already-in-use")) {
     return "This email is already registered. Please sign in instead.";
   }
   if (code.includes("auth/network-request-failed")) {
-    return "Network error. Please check your internet connection.";
+    return "Unable to connect. Please check your internet connection.";
   }
   return fallback;
 }
@@ -31,11 +33,26 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const handleEmailChange = (val: string) => {
+    setEmail(val);
+    if (val.length > 0 && !EMAIL_REGEX.test(val)) {
+      setEmailError("Enter a valid email address.");
+    } else {
+      setEmailError(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!EMAIL_REGEX.test(email)) {
+      setEmailError("Enter a valid email address.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -43,7 +60,7 @@ function LoginForm() {
       router.push(redirectTarget);
     } catch (err: unknown) {
       const e = err as { code?: string; message?: string };
-      setError(formatFirebaseError(e?.code || "", e?.message || "Failed to sign in. Please check your credentials."));
+      setError(formatFirebaseError(e?.code || "", e?.message || "Incorrect email or password."));
       setLoading(false);
     }
   };
@@ -83,16 +100,19 @@ function LoginForm() {
       {/* Form Fields */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1">
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider" htmlFor="email">
-            Work Email
-          </label>
+          <div className="flex justify-between items-center">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider" htmlFor="email">
+              Work Email
+            </label>
+            {emailError && <span className="text-[11px] font-bold text-rose-600">{emailError}</span>}
+          </div>
           <input
             id="email"
             type="email"
-            className="auth-input"
+            className={`auth-input ${emailError ? "border-rose-500 focus:border-rose-500" : ""}`}
             placeholder="you@hospital.org"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => handleEmailChange(e.target.value)}
             required
           />
         </div>
@@ -132,7 +152,7 @@ function LoginForm() {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || Boolean(emailError)}
           className="w-full h-13 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-md transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
         >
           <span>{loading ? "Signing in..." : "Sign In"}</span>

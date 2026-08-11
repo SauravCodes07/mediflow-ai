@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Sidebar } from "../components/layout/Sidebar";
 import { Topbar } from "../components/layout/Topbar";
 import { AIChatDrawer } from "../components/AIChatDrawer";
+import { OperationalDataProvider } from "@/lib/data/operational-context";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -38,20 +39,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="app-shell">
-      <Sidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
-      {mobileOpen && (
-        <div
-          onClick={() => setMobileOpen(false)}
-          style={{ position: "fixed", inset: 0, background: "rgba(7,27,52,0.6)", zIndex: 40 }}
-          aria-hidden
-        />
-      )}
-      <div className="main-col">
-        <Topbar onMenuClick={() => setMobileOpen((v) => !v)} />
-        <main className="content">{children}</main>
+    <OperationalDataProvider>
+      <div className="app-shell">
+        <Sidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
+        {mobileOpen && (
+          <div
+            onClick={() => setMobileOpen(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(7,27,52,0.6)", zIndex: 40 }}
+            aria-hidden
+          />
+        )}
+        <div className="main-col">
+          <Topbar onMenuClick={() => setMobileOpen((v) => !v)} />
+          <main className="content max-w-[1440px] w-full mx-auto">{children}</main>
+        </div>
+        <AIChatDrawer />
       </div>
-      <AIChatDrawer />
-    </div>
+    </OperationalDataProvider>
   );
 }

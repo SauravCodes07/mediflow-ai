@@ -6,17 +6,34 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { Logo } from "@/app/components/brand/Logo";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function SignupPage() {
   const router = useRouter();
   const { signup, loginWithGoogle } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const handleEmailChange = (val: string) => {
+    setEmail(val);
+    if (val.length > 0 && !EMAIL_REGEX.test(val)) {
+      setEmailError("Enter a valid email address.");
+    } else {
+      setEmailError(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!EMAIL_REGEX.test(email)) {
+      setEmailError("Enter a valid email address.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -78,16 +95,19 @@ export default function SignupPage() {
         </div>
 
         <div className="space-y-1">
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider" htmlFor="email">
-            Work Email
-          </label>
+          <div className="flex justify-between items-center">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider" htmlFor="email">
+              Work Email
+            </label>
+            {emailError && <span className="text-[11px] font-bold text-rose-600">{emailError}</span>}
+          </div>
           <input
             id="email"
             type="email"
-            className="auth-input"
+            className={`auth-input ${emailError ? "border-rose-500 focus:border-rose-500" : ""}`}
             placeholder="you@hospital.org"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => handleEmailChange(e.target.value)}
             required
           />
         </div>
@@ -109,7 +129,7 @@ export default function SignupPage() {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || Boolean(emailError)}
           className="w-full h-13 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-md transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
         >
           <span>{loading ? "Creating Account..." : "Create Account"}</span>
