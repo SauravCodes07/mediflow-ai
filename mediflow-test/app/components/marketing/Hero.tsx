@@ -7,43 +7,43 @@ export function Hero() {
   const { user } = useAuth();
 
   return (
-    <section className="relative min-h-[92vh] pt-28 pb-20 overflow-hidden flex flex-col justify-between bg-[#071B34]">
-      {/* Background Hospital Visual with Responsive Overlay */}
+    <section id="hero" className="relative min-h-[88vh] pt-12 pb-20 overflow-hidden flex flex-col justify-between bg-[#071B34]">
+      {/* Hospital Facility Background Visual with Layered Navy Gradients */}
       <div className="absolute inset-0 z-0">
         <img
           src="/images/mediflow-hospital-hero.jpg"
           alt="Mediflow Hospital Facility"
-          className="w-full h-full object-cover object-center lg:object-[center_30%] transition-transform duration-1000 scale-105"
+          className="w-full h-full object-cover object-center lg:object-[center_35%] transition-transform duration-1000 scale-105"
         />
-        {/* Layered Gradient Overlays to make text pop while keeping hospital recognizable */}
+        {/* Layered Gradient Overlays ensuring text high contrast */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#071B34] via-[#071B34]/85 to-[#071B34]/40 md:to-transparent" />
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-[#071B34]/95 via-[#071B34]/70 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-44 bg-gradient-to-t from-[#071B34] via-[#071B34]/80 to-transparent" />
       </div>
 
-      {/* Hero Content Container */}
+      {/* Hero Content Area */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 w-full flex-grow flex flex-col justify-center">
         <div className="max-w-2xl text-left">
           {/* Eyebrow Pill */}
           <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/30 text-blue-300 text-xs sm:text-sm font-semibold tracking-wide shadow-[0_0_15px_rgba(22,119,255,0.25)] mb-6 backdrop-blur-sm">
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            <span>AI-Powered Hospital Management System</span>
+            <span>AI-Powered Hospital Management Platform</span>
           </div>
 
-          {/* Main Headline */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12] mb-6">
+          {/* Headline */}
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12] mb-6">
             Smarter workflows. <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-300">
               Better patient care.
             </span>
           </h1>
 
-          {/* Supporting Subtext */}
+          {/* Subtitle */}
           <p className="text-base sm:text-lg text-slate-200 font-normal leading-relaxed mb-8 max-w-xl">
-            Mediflow-AI connects Admissions, Wards, OT, OPD and more in a single platform — giving you real-time visibility, automation and intelligent insights to save time, reduce delays and improve outcomes.
+            Mediflow-AI connects hospital operations into one intelligent ecosystem — giving clinical teams real-time visibility, automation and actionable insights.
           </p>
 
-          {/* CTA Button Group */}
+          {/* CTA Buttons */}
           <div className="flex flex-wrap items-center gap-4 mb-12">
             <Link
               href={user ? "/dashboard" : "/signup"}
@@ -62,11 +62,11 @@ export function Hero() {
               <svg className="w-5 h-5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <polygon points="5 3 19 12 5 21 5 3" strokeWidth="2" strokeLinejoin="round" />
               </svg>
-              <span>{user ? "Explore Live Dashboard" : "Watch Overview"}</span>
+              <span>{user ? "Explore Live Dashboard" : "Explore Live Dashboard"}</span>
             </Link>
           </div>
 
-          {/* 4 Feature Highlights */}
+          {/* 4 Hero Highlights */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-2">
             <div className="p-3.5 rounded-2xl bg-[#0B2545]/80 border border-white/10 backdrop-blur-md hover:border-blue-400/50 hover:shadow-[0_8px_20px_rgba(22,119,255,0.25)] transition-all group">
               <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 mb-2 group-hover:scale-110 transition-transform">
