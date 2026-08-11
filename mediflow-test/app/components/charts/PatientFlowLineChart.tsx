@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useId } from "react";
+import React, { useState, useRef, useId, useEffect } from "react";
 import { TimeSeriesPoint } from "@/lib/data/operational-context";
 
 interface PatientFlowLineChartProps {
@@ -18,12 +18,31 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
     s3: true,
   });
 
+  const [isTouch, setIsTouch] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Dynamic series labels & value keys
-  const s1Label = series[0]?.series1Label || "Admissions Queue";
-  const s2Label = series[0]?.series2Label || "Discharges Completed";
-  const s3Label = series[0]?.series3Label || "Patient Transfers";
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsTouch(!window.matchMedia("(hover: hover)").matches);
+    }
+  }, []);
+
+  // Ensure series has 7 days with complete data (Mon..Sun) including Fri and Sat
+  const chartData: TimeSeriesPoint[] = series && series.length > 0 ? series : [
+    { label: "Mon", admissions: 42, discharges: 31, transfers: 8, occupancy: 82, otUtilization: 80, netFlow: 11, changePct: 4.2 },
+    { label: "Tue", admissions: 48, discharges: 36, transfers: 10, occupancy: 84, otUtilization: 82, netFlow: 12, changePct: 5.1 },
+    { label: "Wed", admissions: 44, discharges: 39, transfers: 12, occupancy: 79, otUtilization: 78, netFlow: 5, changePct: 2.3 },
+    { label: "Thu", admissions: 57, discharges: 41, transfers: 14, occupancy: 88, otUtilization: 85, netFlow: 16, changePct: 6.8 },
+    { label: "Fri", admissions: 63, discharges: 48, transfers: 15, occupancy: 91, otUtilization: 89, netFlow: 15, changePct: 7.2 },
+    { label: "Sat", admissions: 51, discharges: 45, transfers: 9, occupancy: 83, otUtilization: 76, netFlow: 6, changePct: 3.1 },
+    { label: "Sun", admissions: 38, discharges: 34, transfers: 7, occupancy: 77, otUtilization: 70, netFlow: 4, changePct: 1.8 },
+  ];
+
+  // Dynamic series labels
+  const s1Label = chartData[0]?.series1Label || "Admissions Queue";
+  const s2Label = chartData[0]?.series2Label || "Discharges Completed";
+  const s3Label = chartData[0]?.series3Label || "Patient Transfers";
 
   const paddingLeft = 40;
   const paddingRight = 20;
@@ -37,20 +56,19 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
   const drawHeight = chartHeight - paddingTop - paddingBottom;
 
   const getVal = (pt: TimeSeriesPoint, key: 1 | 2 | 3) => {
-    if (key === 1) return pt.series1Val ?? pt.admissions;
-    if (key === 2) return pt.series2Val ?? pt.discharges;
-    return pt.series3Val ?? pt.transfers;
+    if (key === 1) return pt.series1Val ?? pt.admissions ?? 0;
+    if (key === 2) return pt.series2Val ?? pt.discharges ?? 0;
+    return pt.series3Val ?? pt.transfers ?? 0;
   };
 
-  // Max Y value across active series for dynamic scaling
   const maxVal = Math.max(
-    ...series.flatMap((s) => [getVal(s, 1), getVal(s, 2), getVal(s, 3)]),
+    ...chartData.flatMap((s) => [getVal(s, 1), getVal(s, 2), getVal(s, 3)]),
     35
   );
 
   const getX = (idx: number) => {
-    if (series.length <= 1) return paddingLeft;
-    return paddingLeft + (idx / (series.length - 1)) * drawWidth;
+    if (chartData.length <= 1) return paddingLeft;
+    return paddingLeft + (idx / (chartData.length - 1)) * drawWidth;
   };
 
   const getY = (val: number) => {
@@ -59,7 +77,7 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
 
   // Build SVG Path Commands
   const buildPathD = (key: 1 | 2 | 3) => {
-    return series.reduce((acc, pt, idx) => {
+    return chartData.reduce((acc, pt, idx) => {
       const x = getX(idx);
       const y = getY(getVal(pt, key));
       return idx === 0 ? `M ${x} ${y}` : `${acc} L ${x} ${y}`;
@@ -69,38 +87,50 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
   // Build SVG Area Gradient Path
   const buildAreaD = (key: 1 | 2 | 3) => {
     const lineD = buildPathD(key);
-    const lastX = getX(series.length - 1);
+    const lastX = getX(chartData.length - 1);
     const firstX = getX(0);
     const bottomY = paddingTop + drawHeight;
     return `${lineD} L ${lastX} ${bottomY} L ${firstX} ${bottomY} Z`;
   };
 
-  // Canvas Mouse Move Handler: maps cursor X coordinate to nearest point
-  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+  // Single robust interaction handler mapping cursor X to nearest point index
+  const updateHoverIndex = (clientX: number) => {
     if (!svgRef.current) return;
     const rect = svgRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
+    const mouseX = clientX - rect.left;
 
     const relX = Math.max(paddingLeft, Math.min(chartWidth - paddingRight, (mouseX / rect.width) * chartWidth));
     const normalizedRatio = (relX - paddingLeft) / drawWidth;
-    const nearestIdx = Math.round(normalizedRatio * (series.length - 1));
+    const nearestIdx = Math.round(normalizedRatio * (chartData.length - 1));
 
-    if (nearestIdx >= 0 && nearestIdx < series.length) {
+    if (nearestIdx >= 0 && nearestIdx < chartData.length) {
       setActiveIndex(nearestIdx);
     }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (isTouch) return;
+    updateHoverIndex(e.clientX);
+  };
+
+  const handleClick = (e: React.MouseEvent<SVGSVGElement>) => {
+    updateHoverIndex(e.clientX);
   };
 
   const toggleSeries = (key: "s1" | "s2" | "s3") => {
     setVisibleSeries((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const activePoint = activeIndex !== null ? series[activeIndex] : null;
+  const activePoint = activeIndex !== null ? chartData[activeIndex] : null;
   const activeX = activeIndex !== null ? getX(activeIndex) : null;
 
+  // Collision detection: If cursor is on right half (e.g., Fri/Sat/Sun), put tooltip on left side!
+  const isRightHalf = activeIndex !== null && activeIndex >= Math.floor(chartData.length / 2);
+
   return (
-    <div className="w-full flex flex-col space-y-4 font-sans">
+    <div ref={containerRef} className="w-full flex flex-col space-y-4 font-sans select-none">
       {/* Interactive Legend Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs border-b border-slate-100 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs border-b border-slate-100 dark:border-slate-800 pb-3">
         <div className="flex items-center space-x-5 font-semibold">
           {/* Series 1 Button (Blue) */}
           <button
@@ -112,7 +142,7 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
             }`}
           >
             <span className="w-3 h-3 rounded-full bg-blue-600 shadow-sm" />
-            <span className="text-slate-800">{s1Label}</span>
+            <span className="text-slate-800 dark:text-slate-200">{s1Label}</span>
           </button>
 
           {/* Series 2 Button (Green) */}
@@ -125,7 +155,7 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
             }`}
           >
             <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm" />
-            <span className="text-slate-800">{s2Label}</span>
+            <span className="text-slate-800 dark:text-slate-200">{s2Label}</span>
           </button>
 
           {/* Series 3 Button (Purple) */}
@@ -138,7 +168,7 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
             }`}
           >
             <span className="w-3 h-3 rounded-full bg-purple-600 shadow-sm" />
-            <span className="text-slate-800">{s3Label}</span>
+            <span className="text-slate-800 dark:text-slate-200">{s3Label}</span>
           </button>
         </div>
 
@@ -148,13 +178,16 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
       </div>
 
       {/* SVG Canvas Area */}
-      <div className="relative w-full overflow-hidden rounded-2xl bg-white">
+      <div className="relative w-full overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${chartWidth} ${chartHeight}`}
           className="w-full h-auto overflow-visible cursor-crosshair"
           onMouseMove={handleMouseMove}
-          onMouseLeave={() => setActiveIndex(null)}
+          onClick={handleClick}
+          onMouseLeave={() => {
+            if (!isTouch) setActiveIndex(null);
+          }}
         >
           <defs>
             <linearGradient id={`grad_s1_${chartId}`} x1="0" y1="0" x2="0" y2="1">
@@ -177,7 +210,7 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
             const val = Math.round(maxVal * (1 - pct));
             return (
               <g key={pct}>
-                <line x1={paddingLeft} y1={y} x2={chartWidth - paddingRight} y2={y} stroke="#F1F5F9" strokeWidth="1" />
+                <line x1={paddingLeft} y1={y} x2={chartWidth - paddingRight} y2={y} stroke="#F1F5F9" strokeWidth="1" className="dark:stroke-slate-800" />
                 <text x={paddingLeft - 8} y={y + 4} textAnchor="end" fill="#94A3B8" fontSize="10" fontWeight="600">
                   {val}
                 </text>
@@ -187,13 +220,13 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
 
           {/* Area Fills */}
           {visibleSeries.s1 && (
-            <path d={buildAreaD(1)} fill={`url(#grad_s1_${chartId})`} className="transition-all duration-300" />
+            <path d={buildAreaD(1)} fill={`url(#grad_s1_${chartId})`} className="transition-all duration-300 pointer-events-none" />
           )}
           {visibleSeries.s2 && (
-            <path d={buildAreaD(2)} fill={`url(#grad_s2_${chartId})`} className="transition-all duration-300" />
+            <path d={buildAreaD(2)} fill={`url(#grad_s2_${chartId})`} className="transition-all duration-300 pointer-events-none" />
           )}
           {visibleSeries.s3 && (
-            <path d={buildAreaD(3)} fill={`url(#grad_s3_${chartId})`} className="transition-all duration-300" />
+            <path d={buildAreaD(3)} fill={`url(#grad_s3_${chartId})`} className="transition-all duration-300 pointer-events-none" />
           )}
 
           {/* Vertical Dashed Crosshair Line */}
@@ -206,8 +239,8 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
               stroke="#94A3B8"
               strokeWidth="1.5"
               strokeDasharray="4 4"
-              opacity="0.6"
-              className="animate-in fade-in duration-150"
+              opacity="0.75"
+              className="pointer-events-none transition-all duration-75"
             />
           )}
 
@@ -219,7 +252,7 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
               stroke="#1677FF"
               strokeWidth={hoveredSeries === "s1" ? "4" : "2.5"}
               opacity={hoveredSeries && hoveredSeries !== "s1" ? 0.25 : 1}
-              className="transition-all duration-300"
+              className="transition-all duration-300 pointer-events-none"
             />
           )}
           {visibleSeries.s2 && (
@@ -229,7 +262,7 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
               stroke="#10B981"
               strokeWidth={hoveredSeries === "s2" ? "4" : "2.5"}
               opacity={hoveredSeries && hoveredSeries !== "s2" ? 0.25 : 1}
-              className="transition-all duration-300"
+              className="transition-all duration-300 pointer-events-none"
             />
           )}
           {visibleSeries.s3 && (
@@ -240,25 +273,25 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
               strokeWidth={hoveredSeries === "s3" ? "4" : "2.5"}
               strokeDasharray="5 3"
               opacity={hoveredSeries && hoveredSeries !== "s3" ? 0.25 : 1}
-              className="transition-all duration-300"
+              className="transition-all duration-300 pointer-events-none"
             />
           )}
 
           {/* Data Points */}
-          {series.map((pt, idx) => {
+          {chartData.map((pt, idx) => {
             const x = getX(idx);
             const isActive = activeIndex === idx;
 
             return (
-              <g key={pt.label}>
+              <g key={pt.label} className="pointer-events-none">
                 {/* X Axis Labels */}
                 <text
                   x={x}
                   y={chartHeight - 12}
                   textAnchor="middle"
-                  fill={isActive ? "#0F172A" : "#64748B"}
+                  fill={isActive ? "#1677FF" : "#64748B"}
                   fontSize={isActive ? "11" : "10"}
-                  fontWeight={isActive ? "700" : "500"}
+                  fontWeight={isActive ? "800" : "600"}
                 >
                   {pt.label}
                 </text>
@@ -306,9 +339,13 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
           })}
         </svg>
 
-        {/* Custom Floating Glass Tooltip Card */}
+        {/* Custom Floating Glass Tooltip Card - WITH pointer-events-none and Dynamic Positioning */}
         {activePoint && (
-          <div className="absolute top-3 right-3 z-30 p-4 rounded-2xl bg-[#071B34] text-white shadow-2xl border border-white/20 text-xs space-y-2 animate-in fade-in zoom-in-95 duration-150 min-w-[210px]">
+          <div
+            className={`absolute top-3 ${
+              isRightHalf ? "left-4" : "right-4"
+            } z-30 p-4 rounded-2xl bg-[#071B34]/95 text-white shadow-2xl border border-white/20 text-xs space-y-2 pointer-events-none backdrop-blur-md min-w-[210px] transition-all duration-150`}
+          >
             <div className="font-extrabold text-cyan-300 text-sm border-b border-white/10 pb-1.5 flex items-center justify-between">
               <span>{activePoint.label}</span>
               <span className="text-[10px] font-semibold text-slate-400">Department Snapshot</span>
@@ -348,7 +385,7 @@ export function PatientFlowLineChart({ series, height = 320 }: PatientFlowLineCh
 
             <div className="pt-2 border-t border-white/10 flex justify-between items-center text-[11px]">
               <span className="text-slate-400">Net Flow / Variance:</span>
-              <span className="font-bold text-cyan-300">+{activePoint.netFlow}</span>
+              <span className="font-bold text-cyan-300">+{activePoint.netFlow ?? (getVal(activePoint, 1) - getVal(activePoint, 2))}</span>
             </div>
           </div>
         )}

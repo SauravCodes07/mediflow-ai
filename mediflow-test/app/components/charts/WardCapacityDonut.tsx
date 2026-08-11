@@ -73,37 +73,45 @@ export function WardCapacityDonut() {
     WARDS_DATA.reduce((acc, w) => acc + w.occupancyPct, 0) / WARDS_DATA.length
   );
 
+  // SVG Donut Math: radius = 44, circumference = 2 * PI * 44 = 276.46
+  const R = 44;
+  const CIRCUMFERENCE = 2 * Math.PI * R;
+
   return (
-    <div className="flex flex-col space-y-6 font-sans">
-      {/* Donut Visualization Center */}
-      <div className="relative flex items-center justify-center my-2">
-        <svg className="w-48 h-48 transform -rotate-90 overflow-visible" viewBox="0 0 100 100">
+    <div className="flex flex-col space-y-6 font-sans select-none">
+      {/* 2 & 3. Circular Visualization Container with Aspect-Ratio 1/1 */}
+      <div className="relative flex items-center justify-center my-2 w-full max-w-[200px] mx-auto aspect-square">
+        <svg
+          viewBox="0 0 120 120"
+          className="w-full h-full transform -rotate-90 overflow-visible transition-transform duration-200"
+        >
           {/* Background Track Circle */}
           <circle
-            cx="50"
-            cy="50"
-            r="40"
+            cx="60"
+            cy="60"
+            r={R}
             fill="none"
             stroke="#F1F5F9"
             strokeWidth="10"
+            className="dark:stroke-slate-800"
           />
 
-          {/* 4 Multi-Segment Ward Arcs */}
+          {/* Multi-Segment Ward Arcs */}
           {WARDS_DATA.map((ward, idx) => {
             const isHovered = hoveredWard?.id === ward.id;
-            const segmentLength = (ward.occupancyPct / 100) * 62.8; // slice calculation for r=40 (2*pi*r * scale)
-            const strokeDasharray = `${segmentLength} 251.2`;
-            const strokeDashoffset = -idx * 62.8;
+            const segmentLength = (ward.occupancyPct / 100) * (CIRCUMFERENCE / 4);
+            const strokeDasharray = `${segmentLength} ${CIRCUMFERENCE - segmentLength}`;
+            const strokeDashoffset = -idx * (CIRCUMFERENCE / 4);
 
             return (
               <circle
                 key={ward.id}
-                cx="50"
-                cy="50"
-                r="40"
+                cx="60"
+                cy="60"
+                r={R}
                 fill="none"
                 stroke={ward.hexColor}
-                strokeWidth={isHovered ? "14" : "10"}
+                strokeWidth={isHovered ? "13" : "10"}
                 strokeDasharray={strokeDasharray}
                 strokeDashoffset={strokeDashoffset}
                 strokeLinecap="round"
@@ -114,21 +122,42 @@ export function WardCapacityDonut() {
               />
             );
           })}
+
+          {/* SVG Centered Text Elements (Prevents layout shift or truncation) */}
+          <text
+            x="60"
+            y="54"
+            textAnchor="middle"
+            dominantBaseline="middle"
+            transform="rotate(90 60 60)"
+            className="text-2xl font-extrabold fill-slate-900 dark:fill-white transition-all duration-200"
+            style={{ fontSize: "24px", fontWeight: "800" }}
+          >
+            {hoveredWard ? `${hoveredWard.occupancyPct}%` : `${totalOccupancy}%`}
+          </text>
+          <text
+            x="60"
+            y="74"
+            textAnchor="middle"
+            dominantBaseline="middle"
+            transform="rotate(90 60 60)"
+            className="text-[9px] font-bold fill-slate-400 dark:fill-slate-400 uppercase tracking-widest"
+            style={{ fontSize: "9px", fontWeight: "700" }}
+          >
+            {hoveredWard ? hoveredWard.name.toUpperCase() : "TOTAL OCCUPANCY"}
+          </text>
         </svg>
 
-        {/* Dynamic Center Readout (Two-Way Sync) */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none transition-all duration-200">
-          <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            {hoveredWard ? `${hoveredWard.occupancyPct}%` : `${totalOccupancy}%`}
-          </span>
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-0.5 max-w-[110px] truncate">
-            {hoveredWard ? `${hoveredWard.name}` : "Total Occupancy"}
-          </span>
-        </div>
+        {/* Floating Tooltip readout on hover */}
+        {hoveredWard && (
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-[11px] font-medium px-3 py-1.5 rounded-xl border border-white/20 shadow-xl whitespace-nowrap z-20 pointer-events-none animate-in fade-in zoom-in-95 duration-150">
+            <span className="font-bold text-cyan-300">{hoveredWard.name}</span>: {hoveredWard.occupiedBeds}/{hoveredWard.totalBeds} beds ({hoveredWard.trend})
+          </div>
+        )}
       </div>
 
-      {/* Two-Way Interactive Ward Rows Table */}
-      <div className="space-y-2">
+      {/* Interactive Ward Rows Table */}
+      <div className="space-y-2 pt-2">
         {WARDS_DATA.map((ward) => {
           const isHovered = hoveredWard?.id === ward.id;
           return (
@@ -138,8 +167,8 @@ export function WardCapacityDonut() {
               onMouseLeave={() => setHoveredWard(null)}
               className={`p-3 rounded-2xl border transition-all duration-200 cursor-pointer flex items-center justify-between ${
                 isHovered
-                  ? "border-blue-400 bg-blue-50/60 shadow-md translate-x-1"
-                  : "border-slate-100 bg-slate-50/50 hover:bg-slate-100/80"
+                  ? "border-blue-400 bg-blue-50/60 dark:bg-blue-900/30 dark:border-blue-500 shadow-md translate-x-1"
+                  : "border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
               }`}
             >
               <div className="flex items-center space-x-3">
@@ -148,14 +177,14 @@ export function WardCapacityDonut() {
                   style={{ backgroundColor: ward.hexColor }}
                 />
                 <div>
-                  <div className="text-xs font-bold text-slate-900">{ward.name}</div>
-                  <div className="text-[11px] text-slate-500 font-medium">{ward.department}</div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">{ward.name}</div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{ward.department}</div>
                 </div>
               </div>
 
               <div className="text-right">
-                <div className="text-sm font-extrabold text-slate-900">{ward.occupancyPct}%</div>
-                <div className="text-[10px] text-slate-500 font-medium">
+                <div className="text-sm font-extrabold text-slate-900 dark:text-white">{ward.occupancyPct}%</div>
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                   {ward.occupiedBeds} / {ward.totalBeds} beds ({ward.availableBeds} free)
                 </div>
               </div>
