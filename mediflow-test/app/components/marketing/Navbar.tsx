@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Logo } from "../brand/Logo";
 import { useAuth } from "@/lib/auth-context";
+import { InstallAppButton } from "../ui/InstallAppButton";
 
 const LINKS = [
   { label: "Home", href: "#hero" },
@@ -67,6 +68,9 @@ export function Navbar() {
 
         {/* Right: CTA Actions */}
         <div className="hidden md:flex items-center space-x-3 shrink-0">
+          {/* Install App Button */}
+          <InstallAppButton variant="navbar" />
+
           {user ? (
             <Link
               href="/dashboard"
@@ -100,14 +104,8 @@ export function Navbar() {
 
         {/* Mobile / Tablet Actions */}
         <div className="flex md:hidden items-center space-x-2">
-          {!user && (
-            <Link
-              href="/signup"
-              className="px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg shadow-sm"
-            >
-              Get Started
-            </Link>
-          )}
+          {/* Install App Button (always visible on mobile) */}
+          <InstallAppButton variant="compact" />
           <button
             className="p-2.5 rounded-xl bg-white/10 text-white hover:bg-white/15 border border-white/15"
             aria-label="Open Navigation Menu"
@@ -160,6 +158,11 @@ export function Navbar() {
             </div>
 
             <div className="flex flex-col space-y-3 pt-6 border-t border-white/10">
+              {/* Install App Button in mobile drawer */}
+              <div className="flex justify-center">
+                <InstallAppButton variant="full" />
+              </div>
+
               {user ? (
                 <Link
                   href="/dashboard"
