@@ -5,6 +5,7 @@ import { useOperationalData, TimeRange, DepartmentFilter } from "@/lib/data/oper
 import { PatientFlowLineChart } from "@/app/components/charts/PatientFlowLineChart";
 import { WardCapacityDonut } from "@/app/components/charts/WardCapacityDonut";
 import { ReportPreviewModal } from "@/app/components/reports/ReportPreviewModal";
+import { PageHeader } from "@/app/components/ui/PageHeader";
 import { HOSPITAL_NAME } from "@/lib/config/hospital";
 
 export function AnalyticsBoard() {
@@ -20,6 +21,7 @@ export function AnalyticsBoard() {
     bedOccupancyPct,
     otUtilizationPct,
     cssdAvailabilityPct,
+    admissionsToday,
   } = useOperationalData();
 
   const [reportModalOpen, setReportModalOpen] = useState(false);
@@ -29,14 +31,15 @@ export function AnalyticsBoard() {
   // Dynamically compute totals and averages based on active time range & series data
   const totalVal1 = series.reduce((sum, p) => sum + (p.series1Val ?? p.admissions), 0);
   const totalVal2 = series.reduce((sum, p) => sum + (p.series2Val ?? p.discharges), 0);
+  const totalVal3 = series.reduce((sum, p) => sum + (p.series3Val ?? p.transfers), 0);
 
   // Dynamic Chart Header Title by Department
   const getChartTitle = () => {
     if (deptFilter === "Admissions") return "Admissions Intake Throughput & Consent Clearance";
-    if (deptFilter === "Wards") return "Ward Occupancy & Inter-Unit Patient Transfers";
+    if (deptFilter === "Wards") return "Ward Bed Occupancy & Inter-Unit Patient Transfers";
     if (deptFilter === "OT") return "Operating Theatre Utilization & Turnover Latency";
     if (deptFilter === "CSSD") return "CSSD Pack Readiness & Sterilization Batches";
-    return "Hospital-Wide Throughput & Patient Flow Analytics";
+    return "Hospital-Wide Throughput & Patient Flow";
   };
 
   // Dynamic Data-Driven Footer Insight
@@ -57,42 +60,31 @@ export function AnalyticsBoard() {
   };
 
   return (
-    <div className="space-y-6 font-sans">
-      {/* Analytics Command Center Header & Filter Bar */}
-      <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-          <div>
-            <div className="flex items-center space-x-2">
-              <h2 className="text-xl font-extrabold text-slate-900 tracking-tight font-sans">
-                Analytics & Operational Intelligence
-              </h2>
-              <span className="flex h-2.5 w-2.5 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-              </span>
-              <span className="text-xs font-semibold text-emerald-700">● LIVE</span>
-            </div>
-            <p className="text-xs text-slate-500 mt-0.5 font-medium">
-              Executive KPIs, department turnover latency, throughput trends, and bottleneck insights for {HOSPITAL_NAME}. Updated {secondsSinceUpdate} sec ago.
-            </p>
-          </div>
+    <div className="space-y-6 font-sans select-none pb-24 text-slate-800 dark:text-slate-100">
+      
+      {/* Page Header */}
+      <PageHeader
+        title="Analytics & Operational Intelligence"
+        category="INTELLIGENCE"
+        description={`Hospital throughput, capacity, utilization and bottleneck intelligence for ${HOSPITAL_NAME}.`}
+        actions={
+          <button
+            onClick={() => setReportModalOpen(true)}
+            className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer flex items-center space-x-2 active:scale-95"
+          >
+            <span>📊 Export Report</span>
+          </button>
+        }
+      />
 
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setReportModalOpen(true)}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center space-x-2"
-            >
-              <span>📊 Export Executive Report</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Dynamic Controls Bar */}
+      {/* Filter Bar Toolbar */}
+      <div className="p-5 rounded-3xl bg-white dark:bg-[#0B2545] border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          {/* Time Range Filter (24H, 7D, 30D) */}
-          <div className="flex items-center space-x-2">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Time Range:</span>
-            <div className="flex items-center space-x-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
+          
+          {/* Filter Group 1: Time Range */}
+          <div className="flex items-center space-x-3">
+            <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Time Range:</span>
+            <div className="flex items-center space-x-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
               {[
                 { id: "24h", label: "24 Hours" },
                 { id: "7d", label: "7 Days" },
@@ -102,10 +94,10 @@ export function AnalyticsBoard() {
                   key={r.id}
                   onClick={() => setTimeRange(r.id as TimeRange)}
                   aria-label={`Select ${r.label} time range`}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
                     timeRange === r.id
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                   }`}
                 >
                   {r.label}
@@ -114,19 +106,19 @@ export function AnalyticsBoard() {
             </div>
           </div>
 
-          {/* Department Filter */}
-          <div className="flex items-center space-x-2">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Department:</span>
-            <div className="flex items-center space-x-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
+          {/* Filter Group 2: Department */}
+          <div className="flex items-center space-x-3">
+            <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Department:</span>
+            <div className="flex flex-wrap items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
               {(["all", "Admissions", "Wards", "OT", "CSSD"] as const).map((dept) => (
                 <button
                   key={dept}
                   onClick={() => setDeptFilter(dept as DepartmentFilter)}
                   aria-label={`Filter analytics by ${dept}`}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
                     deptFilter === dept
-                      ? "bg-slate-900 text-white shadow-sm font-bold"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                      ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs"
+                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                   }`}
                 >
                   {dept === "all" ? "All Departments" : dept}
@@ -134,139 +126,150 @@ export function AnalyticsBoard() {
               ))}
             </div>
           </div>
+
+          {/* Live Indicator */}
+          <div className="inline-flex items-center space-x-2 text-[11px] font-bold text-cyan-600 dark:text-cyan-400 self-end md:self-center">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span>● LIVE · Updated {secondsSinceUpdate}s ago</span>
+          </div>
+
         </div>
       </div>
 
-      {/* Department-Reactive KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* KPI Card 1 */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 transform hover:-translate-y-0.5">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-            {deptFilter === "Admissions"
-              ? `Total Intake (${timeRange.toUpperCase()})`
-              : deptFilter === "Wards"
-              ? "Avg Ward Bed Occupancy"
-              : deptFilter === "OT"
-              ? "Avg OT Utilization"
-              : deptFilter === "CSSD"
-              ? "Pack Readiness Rate"
-              : `Total Admissions (${timeRange.toUpperCase()})`}
+      {/* 6 High Quality KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+        {/* KPI 1: Total Admissions */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-[#0B2545] border border-slate-200 dark:border-slate-800 shadow-xs hover:border-blue-400 hover:-translate-y-0.5 transition-all">
+          <div className="flex justify-between items-center text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+            <span>Admissions</span>
+            <span className="text-base">🏥</span>
           </div>
-          <div className="text-3xl font-extrabold text-blue-600">
-            {deptFilter === "Wards"
-              ? `${bedOccupancyPct}%`
-              : deptFilter === "OT"
-              ? `${otUtilizationPct}%`
-              : deptFilter === "CSSD"
-              ? `${cssdAvailabilityPct}%`
-              : totalVal1}
+          <div className="text-2xl sm:text-3xl font-extrabold font-mono text-blue-600 dark:text-cyan-400 mt-1">
+            {deptFilter === "all" ? 143 : totalVal1}
           </div>
-          <div className="text-xs text-slate-500 mt-1 font-medium">
-            {deptFilter === "Wards"
-              ? `${occupiedBeds} of ${totalBeds} beds occupied`
-              : deptFilter === "OT"
-              ? "4 active surgical rooms"
-              : deptFilter === "CSSD"
-              ? "42 sterile packs available"
-              : `Secondary total: ${totalVal2} processed`}
+          <div className="text-[11px] font-semibold text-emerald-600 mt-1">
+            +8.4% vs previous
           </div>
         </div>
 
-        {/* KPI Card 2 */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all duration-200 transform hover:-translate-y-0.5">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-            {deptFilter === "Wards"
-              ? "Ward Patient Transfers"
-              : deptFilter === "OT"
-              ? "Active Procedures"
-              : deptFilter === "CSSD"
-              ? "Sterilization Batches"
-              : "Discharges Completed"}
+        {/* KPI 2: Discharges Completed */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-[#0B2545] border border-slate-200 dark:border-slate-800 shadow-xs hover:border-emerald-400 hover:-translate-y-0.5 transition-all">
+          <div className="flex justify-between items-center text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+            <span>Discharges</span>
+            <span className="text-base">🚪</span>
           </div>
-          <div className="text-3xl font-extrabold text-emerald-600">
-            {deptFilter === "Wards" ? "17" : deptFilter === "OT" ? "4 Cases" : deptFilter === "CSSD" ? "12 Batches" : totalVal2}
+          <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-600 mt-1">
+            {deptFilter === "all" ? 98 : totalVal2}
           </div>
-          <div className="text-xs text-slate-500 mt-1 font-medium">
-            {deptFilter === "Wards" ? "Between Ward A & C" : "Running on schedule"}
+          <div className="text-[11px] font-semibold text-emerald-600 mt-1">
+            +5.2% vs previous
           </div>
         </div>
 
-        {/* KPI Card 3 */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all duration-200 transform hover:-translate-y-0.5">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-            {deptFilter === "OT" ? "Turnover Latency" : "Net Flow Variance"}
+        {/* KPI 3: Avg Bed Occupancy */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-[#0B2545] border border-slate-200 dark:border-slate-800 shadow-xs hover:border-amber-400 hover:-translate-y-0.5 transition-all">
+          <div className="flex justify-between items-center text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+            <span>Bed Occupancy</span>
+            <span className="text-base">🛏️</span>
           </div>
-          <div className="text-3xl font-extrabold text-indigo-600">
-            {deptFilter === "OT" ? "22 mins" : `+${totalVal1 - totalVal2}`}
+          <div className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-600 mt-1">
+            {bedOccupancyPct}%
           </div>
-          <div className="text-xs text-slate-500 mt-1 font-medium">
-            {deptFilter === "OT" ? "↓ 4 mins faster" : "Positive operational balance"}
-          </div>
-        </div>
-
-        {/* KPI Card 4 */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-amber-300 transition-all duration-200 transform hover:-translate-y-0.5">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-            System Reliability
-          </div>
-          <div className="text-3xl font-extrabold text-amber-600">99.8%</div>
-          <div className="text-xs text-slate-500 mt-1 font-medium">Zero data latency</div>
-        </div>
-      </div>
-
-      {/* Main Interactive Multi-Series Chart Card */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-          <div>
-            <h3 className="text-base font-bold text-slate-900">{getChartTitle()}</h3>
-            <p className="text-xs text-slate-500 font-medium">
-              Hover across canvas for vertical crosshair tracking & exact department values.
-            </p>
+          <div className="text-[11px] font-semibold text-amber-600 mt-1">
+            {occupiedBeds}/{totalBeds} beds
           </div>
         </div>
 
-        {/* Patient Flow Line Chart Component */}
-        <PatientFlowLineChart series={series} height={320} />
+        {/* KPI 4: OT Utilization */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-[#0B2545] border border-slate-200 dark:border-slate-800 shadow-xs hover:border-purple-400 hover:-translate-y-0.5 transition-all">
+          <div className="flex justify-between items-center text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+            <span>OT Utilization</span>
+            <span className="text-base">🔬</span>
+          </div>
+          <div className="text-2xl sm:text-3xl font-extrabold font-mono text-purple-600 dark:text-purple-400 mt-1">
+            {otUtilizationPct}%
+          </div>
+          <div className="text-[11px] font-semibold text-purple-600 dark:text-purple-400 mt-1">
+            +6.7% vs target
+          </div>
+        </div>
 
-        {/* Data-Driven Dynamic Footer Insight Bar */}
-        <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-          <div className="flex items-center space-x-2 text-blue-700 bg-blue-50/70 border border-blue-200 px-3.5 py-2 rounded-xl w-full">
-            <span className="font-bold text-blue-800">💡 Operational Insight:</span>
-            <span className="font-semibold text-slate-700">{getFooterInsight()}</span>
+        {/* KPI 5: CSSD Readiness */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-[#0B2545] border border-slate-200 dark:border-slate-800 shadow-xs hover:border-cyan-400 hover:-translate-y-0.5 transition-all">
+          <div className="flex justify-between items-center text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+            <span>CSSD Readiness</span>
+            <span className="text-base">🧪</span>
+          </div>
+          <div className="text-2xl sm:text-3xl font-extrabold font-mono text-cyan-600 dark:text-cyan-400 mt-1">
+            {cssdAvailabilityPct}%
+          </div>
+          <div className="text-[11px] font-semibold text-emerald-600 mt-1">
+            42 packs ready
+          </div>
+        </div>
+
+        {/* KPI 6: Avg Length of Stay */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-[#0B2545] border border-slate-200 dark:border-slate-800 shadow-xs hover:border-indigo-400 hover:-translate-y-0.5 transition-all">
+          <div className="flex justify-between items-center text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+            <span>Avg Stay</span>
+            <span className="text-base">⏱️</span>
+          </div>
+          <div className="text-2xl sm:text-3xl font-extrabold font-mono text-indigo-600 mt-1">
+            4.6d
+          </div>
+          <div className="text-[11px] font-semibold text-emerald-600 mt-1">
+            -0.3d vs baseline
           </div>
         </div>
       </div>
 
-      {/* Ward Capacity Donut Visualization Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
-          <div className="border-b border-slate-100 pb-3">
-            <h3 className="text-base font-bold text-slate-900">Ward Capacity Breakdown</h3>
-            <p className="text-xs text-slate-500 font-medium">Two-way interactive donut & bed occupancy table sync</p>
+      {/* Main Patient Flow Throughput Chart Card */}
+      <div className="p-6 rounded-3xl bg-white dark:bg-[#0B2545] border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+        <PatientFlowLineChart
+          series={series}
+          height={340}
+          timeRange={timeRange}
+          onTimeRangeChange={(r) => setTimeRange(r)}
+        />
+
+        {/* Dynamic Insight Banner */}
+        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center text-xs">
+          <div className="flex items-center space-x-2 text-blue-700 dark:text-cyan-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-3.5 py-2.5 rounded-xl w-full">
+            <span className="font-extrabold">💡 Operational Insight:</span>
+            <span className="font-semibold text-slate-700 dark:text-slate-300">{getFooterInsight()}</span>
           </div>
+        </div>
+      </div>
+
+      {/* Ward Capacity Donut & Department Latency Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        
+        {/* Left: Ward Capacity Component */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-[#0B2545] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between">
           <WardCapacityDonut />
         </div>
 
-        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+        {/* Right: Department Handoff Efficiency */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-[#0B2545] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-4">
           <div>
-            <div className="border-b border-slate-100 pb-3 mb-4">
-              <h3 className="text-base font-bold text-slate-900">Department Handoff Efficiency</h3>
-              <p className="text-xs text-slate-500 font-medium">Average turnarounds and latency delays across units</p>
+            <div className="border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Department Handoff Efficiency</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Average turnaround duration and latency delays across units</p>
             </div>
 
-            <div className="space-y-4 text-xs">
+            <div className="space-y-3.5 text-xs">
               {[
                 { name: "General Wards", throughput: 24, delay: 35, color: "bg-blue-600" },
                 { name: "Operating Theatre", throughput: 12, delay: 20, color: "bg-emerald-500" },
                 { name: "Admissions Intake", throughput: 30, delay: 45, color: "bg-amber-500" },
                 { name: "CSSD Sterilization", throughput: 18, delay: 15, color: "bg-purple-600" },
               ].map((dept) => (
-                <div key={dept.name} className="space-y-1.5 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                <div key={dept.name} className="space-y-1.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
                   <div className="flex justify-between items-center font-semibold">
-                    <span className="text-slate-900 font-bold">{dept.name}</span>
-                    <span className="text-slate-500">{dept.throughput} cases processed · {dept.delay} min avg delay</span>
+                    <span className="text-slate-900 dark:text-white font-extrabold">{dept.name}</span>
+                    <span className="text-slate-500 dark:text-slate-400 text-[11px]">{dept.throughput} cases processed · {dept.delay} min avg delay</span>
                   </div>
-                  <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
+                  <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                     <div className={`h-full rounded-full ${dept.color}`} style={{ width: `${(dept.throughput / 35) * 100}%` }} />
                   </div>
                 </div>
@@ -274,11 +277,12 @@ export function AnalyticsBoard() {
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-900 text-xs flex items-center justify-between">
-            <span className="font-semibold">Overall Handoff Latency: <strong className="text-blue-900">28 mins</strong></span>
-            <span className="font-bold text-emerald-700">↓ 14% Faster than benchmark</span>
+          <div className="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-slate-200 text-xs flex items-center justify-between font-semibold">
+            <span>Overall Handoff Latency: <b className="text-slate-900 dark:text-white">28 mins</b></span>
+            <span className="font-bold text-emerald-600 dark:text-emerald-400">↓ 14% Faster than benchmark</span>
           </div>
         </div>
+
       </div>
 
       {/* Executive Report Preview Modal */}

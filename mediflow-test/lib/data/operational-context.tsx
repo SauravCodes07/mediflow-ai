@@ -15,7 +15,6 @@ export interface TimeSeriesPoint {
   otUtilization: number;
   netFlow: number;
   changePct: number;
-  // Department-specific labels and metric fields
   series1Label?: string;
   series2Label?: string;
   series3Label?: string;
@@ -97,21 +96,19 @@ export function OperationalDataProvider({ children }: { children: ReactNode }) {
     // X-Axis Labels based on timeRange
     let labels: string[] = [];
     if (timeRange === "24h") {
-      labels = ["00:00", "03:00", "06:00", "09:00", "12:00", "15:00", "18:00", "21:00"];
+      labels = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, "0")}:00`);
     } else if (timeRange === "30d") {
-      labels = ["01", "03", "05", "07", "09", "11", "13", "15", "17", "19", "21", "23", "25", "27", "29"];
+      labels = Array.from({ length: 30 }, (_, i) => String(i + 1).padStart(2, "0"));
     } else {
       labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     }
 
-    // -------------------------------------------------------------------------
     // 1. ADMISSIONS DEPARTMENT DATASET
-    // -------------------------------------------------------------------------
     if (deptFilter === "Admissions") {
       return labels.map((label, idx) => {
-        const s1 = Math.round(18 + Math.sin(idx + deptSeed) * 6 + (idx % 3) * 2); // Intake Rate
-        const s2 = Math.round(12 + Math.cos(idx + deptSeed) * 4); // Discharges
-        const s3 = Math.round(4 + (idx % 4)); // Pending Forms
+        const s1 = Math.round(18 + Math.sin(idx + deptSeed) * 6 + (idx % 3) * 2);
+        const s2 = Math.round(12 + Math.cos(idx + deptSeed) * 4);
+        const s3 = Math.round(4 + (idx % 4));
         return {
           label,
           admissions: s1,
@@ -131,14 +128,12 @@ export function OperationalDataProvider({ children }: { children: ReactNode }) {
       });
     }
 
-    // -------------------------------------------------------------------------
     // 2. WARDS DEPARTMENT DATASET
-    // -------------------------------------------------------------------------
     if (deptFilter === "Wards") {
       return labels.map((label, idx) => {
-        const s1 = Math.min(98, Math.round(82 + (idx * 2) % 12 + (deptSeed % 3))); // Occupancy %
-        const s2 = Math.round(14 + (idx * 3) % 9); // Ward Transfers
-        const s3 = Math.round(10 + (idx * 2) % 7); // Discharges
+        const s1 = Math.min(98, Math.round(82 + (idx * 2) % 12 + (deptSeed % 3)));
+        const s2 = Math.round(14 + (idx * 3) % 9);
+        const s3 = Math.round(10 + (idx * 2) % 7);
         return {
           label,
           admissions: s1,
@@ -158,14 +153,12 @@ export function OperationalDataProvider({ children }: { children: ReactNode }) {
       });
     }
 
-    // -------------------------------------------------------------------------
     // 3. OPERATING THEATRE (OT) DEPARTMENT DATASET
-    // -------------------------------------------------------------------------
     if (deptFilter === "OT") {
       return labels.map((label, idx) => {
-        const s1 = Math.min(96, Math.round(72 + (idx * 4) % 22 + (deptSeed % 4))); // OT Utilization %
-        const s2 = Math.round(4 + (idx % 4)); // Active Procedures
-        const s3 = Math.round(18 + (idx * 5) % 15); // Turnover Latency (min)
+        const s1 = Math.min(96, Math.round(72 + (idx * 4) % 22 + (deptSeed % 4)));
+        const s2 = Math.round(4 + (idx % 4));
+        const s3 = Math.round(18 + (idx * 5) % 15);
         return {
           label,
           admissions: s1,
@@ -174,7 +167,7 @@ export function OperationalDataProvider({ children }: { children: ReactNode }) {
           occupancy: 85,
           otUtilization: s1,
           netFlow: s1 - 70,
-          changePct: Math.round((s1 - 70)),
+          changePct: Math.round(s1 - 70),
           series1Label: "OT Utilization %",
           series2Label: "Active Cases",
           series3Label: "Turnover Latency (min)",
@@ -185,14 +178,12 @@ export function OperationalDataProvider({ children }: { children: ReactNode }) {
       });
     }
 
-    // -------------------------------------------------------------------------
     // 4. CSSD STERILIZATION DEPARTMENT DATASET
-    // -------------------------------------------------------------------------
     if (deptFilter === "CSSD") {
       return labels.map((label, idx) => {
-        const s1 = Math.min(99, Math.round(90 + (idx * 2) % 8 + (deptSeed % 2))); // Pack Readiness %
-        const s2 = Math.round(12 + (idx * 2) % 6); // Batches Processed
-        const s3 = Math.round(1 + (idx % 3)); // Problem Packs
+        const s1 = Math.min(99, Math.round(90 + (idx * 2) % 8 + (deptSeed % 2)));
+        const s2 = Math.round(12 + (idx * 2) % 6);
+        const s3 = Math.round(1 + (idx % 3));
         return {
           label,
           admissions: s1,
@@ -201,7 +192,7 @@ export function OperationalDataProvider({ children }: { children: ReactNode }) {
           occupancy: 90,
           otUtilization: 84,
           netFlow: s1 - 85,
-          changePct: Math.round((s1 - 85)),
+          changePct: Math.round(s1 - 85),
           series1Label: "Pack Readiness %",
           series2Label: "Batches Processed",
           series3Label: "Problem Packs",
@@ -212,20 +203,18 @@ export function OperationalDataProvider({ children }: { children: ReactNode }) {
       });
     }
 
-    // -------------------------------------------------------------------------
     // 5. ALL DEPARTMENTS (DEFAULT HOSPITAL-WIDE DATASET)
-    // -------------------------------------------------------------------------
     return labels.map((label, idx) => {
-      const s1 = Math.round(20 + (idx * 3) % 12 + (deptSeed % 4)); // Admissions
-      const s2 = Math.round(15 + (idx * 2) % 9); // Discharges
-      const s3 = Math.round(8 + (idx % 5)); // Transfers
+      const s1 = Math.round(20 + (idx * 3) % 12 + (deptSeed % 4));
+      const s2 = Math.round(15 + (idx * 2) % 9);
+      const s3 = Math.round(5 + (idx % 5));
       return {
         label,
         admissions: s1,
         discharges: s2,
         transfers: s3,
-        occupancy: 91,
-        otUtilization: 82,
+        occupancy: Math.round(80 + (idx % 8)),
+        otUtilization: Math.round(75 + (idx % 12)),
         netFlow: s1 - s2,
         changePct: Math.round(((s1 - s2) / (s2 || 1)) * 100),
         series1Label: "Admissions Queue",
@@ -238,16 +227,16 @@ export function OperationalDataProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const totalBeds = 48;
-  const occupiedBeds = baseBedsOccupied;
+  const totalBeds = 192;
+  const occupiedBeds = baseBedsOccupied * 4 - 29;
   const availableBeds = totalBeds - occupiedBeds;
   const bedOccupancyPct = Math.round((occupiedBeds / totalBeds) * 100);
 
   const value: OperationalDataState = {
     admissionsToday: baseAdmissions,
-    readyAdmissions: Math.max(1, baseAdmissions - 6),
-    blockedAdmissions: 4,
-    pendingConsent: 2,
+    readyAdmissions: Math.round(baseAdmissions * 0.75),
+    blockedAdmissions: Math.round(baseAdmissions * 0.15),
+    pendingConsent: 3,
     totalBeds,
     occupiedBeds,
     availableBeds,
@@ -257,8 +246,8 @@ export function OperationalDataProvider({ children }: { children: ReactNode }) {
     otUpcomingToday: 8,
     otCriticalDelays: 1,
     cssdAvailabilityPct: baseCssd,
-    criticalAlertsCount: 3,
-    patientTransfers: 7,
+    criticalAlertsCount: 2,
+    patientTransfers: 17,
     secondsSinceUpdate,
     timeRange,
     deptFilter,
@@ -277,37 +266,7 @@ export function OperationalDataProvider({ children }: { children: ReactNode }) {
 export function useOperationalData() {
   const context = useContext(OperationalDataContext);
   if (!context) {
-    return {
-      admissionsToday: 28,
-      readyAdmissions: 22,
-      blockedAdmissions: 4,
-      pendingConsent: 2,
-      totalBeds: 48,
-      occupiedBeds: 45,
-      availableBeds: 3,
-      bedOccupancyPct: 91,
-      otUtilizationPct: 82,
-      otActiveCases: 4,
-      otUpcomingToday: 8,
-      otCriticalDelays: 1,
-      cssdAvailabilityPct: 96,
-      criticalAlertsCount: 3,
-      patientTransfers: 7,
-      secondsSinceUpdate: 8,
-      timeRange: "7d" as TimeRange,
-      deptFilter: "all" as DepartmentFilter,
-      setTimeRange: () => {},
-      setDeptFilter: () => {},
-      getTimeSeries: () => [
-        { label: "Mon", admissions: 24, discharges: 18, transfers: 8, occupancy: 85, otUtilization: 76, netFlow: 6, changePct: 33, series1Label: "Admissions Queue", series2Label: "Discharges Completed", series3Label: "Patient Transfers", series1Val: 24, series2Val: 18, series3Val: 8 },
-        { label: "Tue", admissions: 29, discharges: 21, transfers: 11, occupancy: 88, otUtilization: 82, netFlow: 8, changePct: 38, series1Label: "Admissions Queue", series2Label: "Discharges Completed", series3Label: "Patient Transfers", series1Val: 29, series2Val: 21, series3Val: 11 },
-        { label: "Wed", admissions: 27, discharges: 23, transfers: 9, occupancy: 91, otUtilization: 85, netFlow: 4, changePct: 17, series1Label: "Admissions Queue", series2Label: "Discharges Completed", series3Label: "Patient Transfers", series1Val: 27, series2Val: 23, series3Val: 9 },
-        { label: "Thu", admissions: 34, discharges: 25, transfers: 13, occupancy: 93, otUtilization: 89, netFlow: 9, changePct: 36, series1Label: "Admissions Queue", series2Label: "Discharges Completed", series3Label: "Patient Transfers", series1Val: 34, series2Val: 25, series3Val: 13 },
-        { label: "Fri", admissions: 31, discharges: 27, transfers: 10, occupancy: 91, otUtilization: 84, netFlow: 4, changePct: 15, series1Label: "Admissions Queue", series2Label: "Discharges Completed", series3Label: "Patient Transfers", series1Val: 31, series2Val: 27, series3Val: 10 },
-        { label: "Sat", admissions: 22, discharges: 19, transfers: 7, occupancy: 86, otUtilization: 72, netFlow: 3, changePct: 16, series1Label: "Admissions Queue", series2Label: "Discharges Completed", series3Label: "Patient Transfers", series1Val: 22, series2Val: 19, series3Val: 7 },
-        { label: "Sun", admissions: 28, discharges: 24, transfers: 12, occupancy: 82, otUtilization: 65, netFlow: 4, changePct: 17, series1Label: "Admissions Queue", series2Label: "Discharges Completed", series3Label: "Patient Transfers", series1Val: 28, series2Val: 24, series3Val: 12 },
-      ],
-    };
+    throw new Error("useOperationalData must be used within an OperationalDataProvider");
   }
   return context;
 }

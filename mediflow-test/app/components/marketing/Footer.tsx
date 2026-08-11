@@ -5,7 +5,7 @@ import { Logo } from "../brand/Logo";
 
 export function Footer() {
   return (
-    <footer className="bg-[#030E22] border-t border-white/10 pt-16 pb-12 text-slate-400 text-sm">
+    <footer className="bg-[#030E22] border-t border-white/10 pt-16 pb-12 text-slate-400 text-sm font-sans select-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-white/10">
           
@@ -14,7 +14,10 @@ export function Footer() {
             <Link href="/" aria-label="Mediflow-AI Home" className="inline-block">
               <Logo size="md" showTagline={true} />
             </Link>
-            <div className="flex items-center space-x-3 pt-2">
+            <p className="text-xs text-slate-400 font-medium leading-relaxed">
+              Clinical operational command center & AI workflow intelligence platform.
+            </p>
+            <div className="flex items-center space-x-3 pt-1">
               <a href="#" className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 hover:text-cyan-400 hover:border-cyan-400/40 transition-colors" aria-label="Facebook">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/></svg>
               </a>
@@ -29,8 +32,8 @@ export function Footer() {
 
           {/* Col 1: Platform */}
           <div className="space-y-3">
-            <div className="text-white font-bold text-sm tracking-tight">Platform</div>
-            <ul className="space-y-2 text-xs">
+            <div className="text-white font-extrabold text-sm tracking-tight">Platform</div>
+            <ul className="space-y-2 text-xs font-semibold">
               <li><a href="#features" className="hover:text-cyan-400 transition-colors">Features</a></li>
               <li><a href="#departments" className="hover:text-cyan-400 transition-colors">Departments</a></li>
               <li><a href="#solutions" className="hover:text-cyan-400 transition-colors">Solutions</a></li>
@@ -40,9 +43,8 @@ export function Footer() {
 
           {/* Col 2: Resources */}
           <div className="space-y-3">
-            <div className="text-white font-bold text-sm tracking-tight">Resources</div>
-            <ul className="space-y-2 text-xs">
-              <li><a href="#" className="hover:text-cyan-400 transition-colors">Blog</a></li>
+            <div className="text-white font-extrabold text-sm tracking-tight">Resources</div>
+            <ul className="space-y-2 text-xs font-semibold">
               <li><a href="#" className="hover:text-cyan-400 transition-colors">Case Studies</a></li>
               <li><a href="#" className="hover:text-cyan-400 transition-colors">Webinars</a></li>
               <li><a href="#" className="hover:text-cyan-400 transition-colors">Documentation</a></li>
@@ -51,42 +53,35 @@ export function Footer() {
 
           {/* Col 3: Company */}
           <div className="space-y-3">
-            <div className="text-white font-bold text-sm tracking-tight">Company</div>
-            <ul className="space-y-2 text-xs">
+            <div className="text-white font-extrabold text-sm tracking-tight">Company</div>
+            <ul className="space-y-2 text-xs font-semibold">
               <li><a href="#" className="hover:text-cyan-400 transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-cyan-400 transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-cyan-400 transition-colors">Contact Us</a></li>
+              <li><a href="#" className="hover:text-cyan-400 transition-colors">Contact Support</a></li>
               <li><a href="#" className="hover:text-cyan-400 transition-colors">Privacy Policy</a></li>
             </ul>
           </div>
 
-          {/* Col 4: Stay Updated */}
+          {/* Col 4: Demo Notice */}
           <div className="space-y-3">
-            <div className="text-white font-bold text-sm tracking-tight">Stay Updated</div>
-            <p className="text-xs text-slate-400">Subscribe to get the latest updates.</p>
-            <form onSubmit={(e) => e.preventDefault()} className="flex items-center space-x-2">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="w-full px-3.5 py-2 text-xs rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
-              />
-              <button
-                type="submit"
-                aria-label="Subscribe"
-                className="p-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white shrink-0 shadow-md"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </button>
-            </form>
+            <div className="text-white font-extrabold text-sm tracking-tight">Demo Environment</div>
+            <p className="text-xs text-slate-400 leading-relaxed font-medium">
+              Synthetic data only. AI serves as operational decision support for hospital administrative teams.
+            </p>
+            <div className="inline-block px-3 py-1 rounded-full bg-cyan-950 border border-cyan-800 text-cyan-300 text-[10px] font-bold">
+              ● Mediflow General Hospital
+            </div>
           </div>
 
         </div>
 
         {/* Bottom Copyright Bar */}
-        <div className="pt-8 text-center text-xs text-slate-500">
-          © {new Date().getFullYear()} Mediflow-AI. All rights reserved.
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 font-medium">
+          <div>
+            © {new Date().getFullYear()} Mediflow-AI. All rights reserved.
+          </div>
+          <div className="text-slate-400 font-mono text-[11px]">
+            Demo environment — synthetic data only
+          </div>
         </div>
       </div>
     </footer>
