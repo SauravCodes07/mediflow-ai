@@ -5,6 +5,7 @@ import { FeaturesSection } from "./components/marketing/FeaturesSection";
 import { DepartmentGrid } from "./components/marketing/DepartmentGrid";
 import { WhySection } from "./components/marketing/WhySection";
 import { AnalyticsSection } from "./components/marketing/AnalyticsSection";
+import { ResourcesSection } from "./components/marketing/ResourcesSection";
 import { PricingSection } from "./components/marketing/PricingSection";
 import { AboutSection } from "./components/marketing/AboutSection";
 import { Footer } from "./components/marketing/Footer";
@@ -20,6 +21,7 @@ export default function LandingPage() {
         <DepartmentGrid />
         <WhySection />
         <AnalyticsSection />
+        <ResourcesSection />
         <PricingSection />
         <AboutSection />
       </main>

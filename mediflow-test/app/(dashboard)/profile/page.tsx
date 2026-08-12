@@ -347,23 +347,23 @@ export default function ProfilePage() {
           </div>
 
           {/* Appearance Theme Card */}
-          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
-            <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">Appearance Theme</h3>
-            <p className="text-xs text-slate-500 font-medium">Select application visual mode preference</p>
+          <div className="p-6 rounded-3xl bg-white dark:bg-[#0B2545] border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">Appearance Theme</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Select application visual mode preference</p>
 
             <div className="flex items-center space-x-2 text-xs">
-              {(["light", "dark", "system"] as const).map((t) => (
+              {(["light", "dark"] as const).map((t) => (
                 <button
                   key={t}
                   type="button"
                   onClick={() => setTheme(t as ThemeMode)}
-                  className={`flex-1 py-2.5 rounded-xl font-bold capitalize border transition-all cursor-pointer ${
+                  className={`flex-1 py-2.5 rounded-xl font-extrabold capitalize border transition-all cursor-pointer ${
                     theme === t
                       ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                      : "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
                   }`}
                 >
-                  {t}
+                  {t === "light" ? "☀️ Light" : "🌙 Dark"}
                 </button>
               ))}
             </div>

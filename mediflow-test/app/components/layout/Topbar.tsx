@@ -113,10 +113,10 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
 
               <div className="px-4 py-2">
                 <div className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1.5">Theme Preference</div>
-                <div className="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                <div className="grid grid-cols-2 gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
                   <button
                     onClick={() => setTheme("light")}
-                    className={`py-1 text-[11px] font-bold rounded-lg transition-all ${
+                    className={`py-1.5 px-3 text-xs font-extrabold rounded-lg transition-all cursor-pointer ${
                       theme === "light" ? "bg-white text-blue-600 shadow-xs" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
@@ -124,19 +124,11 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
                   </button>
                   <button
                     onClick={() => setTheme("dark")}
-                    className={`py-1 text-[11px] font-bold rounded-lg transition-all ${
+                    className={`py-1.5 px-3 text-xs font-extrabold rounded-lg transition-all cursor-pointer ${
                       theme === "dark" ? "bg-slate-700 text-cyan-400 shadow-xs" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
                     🌙 Dark
-                  </button>
-                  <button
-                    onClick={() => setTheme("system")}
-                    className={`py-1 text-[11px] font-bold rounded-lg transition-all ${
-                      theme === "system" ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-cyan-400 shadow-xs" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                    }`}
-                  >
-                    💻 Auto
                   </button>
                 </div>
               </div>
