@@ -100,8 +100,18 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         </div>
 
         {/* RIGHT COLUMN: High-Contrast Auth Card Container (45% Desktop) */}
-        <div className="flex-1 min-h-[calc(100vh-280px)] lg:min-h-[calc(100vh-57px)] bg-slate-50 dark:bg-[#061427] flex items-center justify-center p-4 sm:p-8 lg:p-12">
-          <div className="w-full max-w-[430px] bg-white dark:bg-[#102B4D] rounded-3xl p-6 sm:p-10 shadow-2xl border border-slate-200 dark:border-[#1E406D]">
+        <div className="flex-1 min-h-[calc(100vh-280px)] lg:min-h-[calc(100vh-57px)] bg-[#071B34] flex items-center justify-center p-4 sm:p-8 lg:p-12 relative overflow-hidden">
+          {/* Newly Provided Mediflow Healthcare Background */}
+          <div className="absolute inset-0 z-0 select-none pointer-events-none">
+            <img
+              src="/images/mediflow-medical-bg.jpg"
+              alt="Mediflow Healthcare Background"
+              className="w-full h-full object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-black/10 dark:bg-[#061427]/30" />
+          </div>
+
+          <div className="relative z-10 w-full max-w-[430px] bg-white/95 dark:bg-[#102B4D]/95 backdrop-blur-md rounded-3xl p-6 sm:p-10 shadow-2xl border border-slate-200/80 dark:border-[#1E406D]/80">
             {children}
           </div>
         </div>
