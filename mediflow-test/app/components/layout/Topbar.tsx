@@ -18,9 +18,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const clinicalRole = profile?.role ? profile.role.toUpperCase() : "HOSPITAL ADMIN";
 
   const toggleTheme = () => {
-    if (theme === "light") setTheme("dark");
-    else if (theme === "dark") setTheme("system");
-    else setTheme("light");
+    setTheme(theme === "light" ? "dark" : "light");
   };
 
   return (

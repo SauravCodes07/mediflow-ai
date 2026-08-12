@@ -12,9 +12,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   const { theme, setTheme, isDark } = useTheme();
 
   const toggleTheme = () => {
-    if (theme === "light") setTheme("dark");
-    else if (theme === "dark") setTheme("system");
-    else setTheme("light");
+    setTheme(theme === "light" ? "dark" : "light");
   };
 
   const isLoginPage = pathname === "/login";
