@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Logo } from "../brand/Logo";
 import { useAuth } from "@/lib/auth-context";
@@ -19,13 +20,41 @@ const LINKS = [
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { user } = useAuth();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (drawerOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [drawerOpen]);
+
+  // Clean up drawer on desktop resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1280) {
+        setDrawerOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -39,108 +68,109 @@ export function Navbar() {
   };
 
   return (
-    <header
-      className={`sticky top-0 left-0 right-0 z-50 h-20 w-full shrink-0 transition-all duration-300 ${
-        scrolled
-          ? "bg-[#071B34]/95 backdrop-blur-md border-b border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
-          : "bg-[#071B34] border-b border-white/10"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        {/* Left: Branded Logo */}
-        <Link href="/" className="inline-flex items-center shrink-0 group" aria-label="Mediflow-AI Home">
-          <Logo size="md" variant="dark" showTagline={true} />
-        </Link>
+    <>
+      <header
+        className={`sticky top-0 left-0 right-0 z-40 h-20 w-full shrink-0 transition-all duration-300 ${
+          scrolled
+            ? "bg-[#071B34]/95 backdrop-blur-md border-b border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+            : "bg-[#071B34] border-b border-white/10"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+          {/* Left: Branded Logo */}
+          <Link href="/" className="inline-flex items-center shrink-0 group" aria-label="Mediflow-AI Home">
+            <Logo size="md" variant="dark" showTagline={true} />
+          </Link>
 
-        {/* Center: Desktop Navigation Links */}
-        <nav aria-label="Primary Navigation" className="hidden xl:flex items-center space-x-6">
-          {LINKS.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              onClick={(e) => handleNavClick(e, l.href)}
-              className="text-xs lg:text-sm font-medium text-slate-200 hover:text-cyan-400 transition-colors py-1 relative font-sans"
-            >
-              {l.label}
-            </a>
-          ))}
-        </nav>
-
-        {/* Right: CTA Actions */}
-        <div className="hidden md:flex items-center space-x-3 shrink-0">
-          {/* Install App Button */}
-          <InstallAppButton variant="navbar" />
-
-          {user ? (
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center space-x-2 px-5 py-2.5 text-xs lg:text-sm font-semibold text-white bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 rounded-xl shadow-[0_4px_20px_rgba(22,119,255,0.3)] transition-all transform hover:-translate-y-0.5"
-            >
-              <span>Go to Dashboard</span>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </Link>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="inline-flex items-center space-x-2 px-4 py-2.5 text-xs lg:text-sm font-medium text-slate-200 bg-white/5 hover:bg-white/10 border border-white/15 rounded-xl transition-all hover:border-cyan-400/40"
+          {/* Center: Desktop Navigation Links */}
+          <nav aria-label="Primary Navigation" className="hidden xl:flex items-center space-x-6">
+            {LINKS.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                onClick={(e) => handleNavClick(e, l.href)}
+                className="text-xs lg:text-sm font-medium text-slate-200 hover:text-cyan-400 transition-colors py-1 relative font-sans"
               >
-                <svg className="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span>Sign in</span>
-              </Link>
+                {l.label}
+              </a>
+            ))}
+          </nav>
+
+          {/* Right: Clean Public Auth Action Buttons */}
+          <div className="hidden md:flex items-center space-x-3 shrink-0">
+            {user ? (
               <Link
-                href="/signup"
+                href="/dashboard"
                 className="inline-flex items-center space-x-2 px-5 py-2.5 text-xs lg:text-sm font-semibold text-white bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 rounded-xl shadow-[0_4px_20px_rgba(22,119,255,0.3)] transition-all transform hover:-translate-y-0.5"
               >
-                <span>Get Started →</span>
+                <span>Go to Dashboard</span>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
               </Link>
-            </>
-          )}
-        </div>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center space-x-2 px-4 py-2.5 text-xs lg:text-sm font-medium text-slate-200 bg-white/5 hover:bg-white/10 border border-white/15 rounded-xl transition-all hover:border-cyan-400/40"
+                >
+                  <svg className="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span>Sign in</span>
+                </Link>
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center space-x-2 px-5 py-2.5 text-xs lg:text-sm font-semibold text-white bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 rounded-xl shadow-[0_4px_20px_rgba(22,119,255,0.3)] transition-all transform hover:-translate-y-0.5"
+                >
+                  <span>Get Started →</span>
+                </Link>
+              </>
+            )}
+          </div>
 
-        {/* Mobile / Tablet Actions */}
-        <div className="flex md:hidden items-center space-x-2">
-          {/* Install App Button (always visible on mobile) */}
-          <InstallAppButton variant="compact" />
-          <button
-            className="p-2.5 rounded-xl bg-white/10 text-white hover:bg-white/15 border border-white/15"
-            aria-label="Open Navigation Menu"
-            onClick={() => setDrawerOpen(true)}
-          >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          {/* Mobile Hamburger Toggle */}
+          <div className="flex xl:hidden items-center space-x-2">
+            <button
+              className="p-2.5 rounded-xl bg-white/10 text-white hover:bg-white/15 border border-white/15 cursor-pointer"
+              aria-label="Open Navigation Menu"
+              onClick={() => setDrawerOpen(true)}
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Animated Drawer Menu */}
-      {drawerOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm xl:hidden flex justify-end"
-          onClick={() => setDrawerOpen(false)}
-        >
+      {/* Viewport-Level Fixed Mobile Navigation Drawer (Portal to document.body) */}
+      {drawerOpen && mounted && createPortal(
+        <div className="fixed inset-0 z-[9998] flex justify-end xl:hidden">
+          {/* Backdrop Overlay */}
           <div
-            className="w-4/5 max-w-sm h-full bg-[#071B34] border-l border-white/10 p-6 flex flex-col justify-between shadow-2xl animate-in slide-in-from-right duration-200"
+            className="fixed inset-0 bg-[#020C18]/80 backdrop-blur-md z-[9998] transition-opacity duration-200"
+            onClick={() => setDrawerOpen(false)}
+          />
+
+          {/* Fully Opaque Solid Navy Drawer Panel */}
+          <div
+            className="relative z-[9999] w-full max-w-xs sm:max-w-sm h-full min-h-[100dvh] bg-[#071B34] border-l border-white/15 p-6 flex flex-col justify-between shadow-2xl overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div>
-              <div className="flex items-center justify-between pb-6 border-b border-white/10">
+              <div className="flex items-center justify-between pb-5 border-b border-white/10">
                 <Logo size="sm" variant="dark" showTagline={false} />
                 <button
                   onClick={() => setDrawerOpen(false)}
-                  className="p-2 rounded-lg bg-white/5 text-slate-300 hover:text-white"
-                  aria-label="Close menu"
+                  className="p-2 rounded-xl bg-white/10 text-slate-300 hover:text-white hover:bg-white/20 z-[10000] cursor-pointer"
+                  aria-label="Close navigation menu"
                 >
                   ✕
                 </button>
               </div>
 
-              <div className="flex flex-col space-y-3 mt-6">
+              <nav aria-label="Mobile Navigation" className="flex flex-col space-y-1 mt-6">
                 {LINKS.map((l) => (
                   <a
                     key={l.href}
@@ -149,17 +179,17 @@ export function Navbar() {
                       setDrawerOpen(false);
                       handleNavClick(e, l.href);
                     }}
-                    className="text-sm font-semibold text-slate-200 hover:text-cyan-400 transition-colors py-2 border-b border-white/5"
+                    className="text-sm font-semibold text-slate-200 hover:text-cyan-400 transition-colors py-3 px-3 rounded-lg hover:bg-white/5 border-b border-white/5"
                   >
                     {l.label}
                   </a>
                 ))}
-              </div>
+              </nav>
             </div>
 
-            <div className="flex flex-col space-y-3 pt-6 border-t border-white/10">
-              {/* Install App Button in mobile drawer */}
-              <div className="flex justify-center">
+            <div className="flex flex-col space-y-3 pt-6 mt-6 border-t border-white/10 shrink-0">
+              {/* Install App Option in Mobile Menu */}
+              <div className="flex justify-center w-full">
                 <InstallAppButton variant="full" />
               </div>
 
@@ -176,7 +206,7 @@ export function Navbar() {
                   <Link
                     href="/login"
                     onClick={() => setDrawerOpen(false)}
-                    className="w-full text-center py-3 text-slate-200 bg-white/5 rounded-xl font-semibold border border-white/10 text-sm"
+                    className="w-full text-center py-3 text-slate-200 bg-white/5 rounded-xl font-semibold border border-white/10 text-sm hover:bg-white/10"
                   >
                     Sign in
                   </Link>
@@ -191,8 +221,9 @@ export function Navbar() {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-    </header>
+    </>
   );
 }

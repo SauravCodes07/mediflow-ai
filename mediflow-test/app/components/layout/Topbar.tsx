@@ -103,29 +103,72 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
 
           {profileDropdownOpen && (
             <div
-              className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
-              onClick={() => setProfileDropdownOpen(false)}
+              className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
                 <div className="text-xs font-extrabold text-slate-900 dark:text-white">{displayName}</div>
                 <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate">{user?.email || "staff@mediflow.org"}</div>
               </div>
-              <Link href="/profile" className="flex items-center space-x-2 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">
+
+              <div className="px-4 py-2">
+                <div className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-1.5">Theme Preference</div>
+                <div className="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                  <button
+                    onClick={() => setTheme("light")}
+                    className={`py-1 text-[11px] font-bold rounded-lg transition-all ${
+                      theme === "light" ? "bg-white text-blue-600 shadow-xs" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    ☀️ Light
+                  </button>
+                  <button
+                    onClick={() => setTheme("dark")}
+                    className={`py-1 text-[11px] font-bold rounded-lg transition-all ${
+                      theme === "dark" ? "bg-slate-700 text-cyan-400 shadow-xs" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    🌙 Dark
+                  </button>
+                  <button
+                    onClick={() => setTheme("system")}
+                    className={`py-1 text-[11px] font-bold rounded-lg transition-all ${
+                      theme === "system" ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-cyan-400 shadow-xs" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    💻 Auto
+                  </button>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+
+              <Link href="/profile" onClick={() => setProfileDropdownOpen(false)} className="flex items-center space-x-2 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">
                 <svg className="w-4 h-4 text-blue-600 dark:text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 <span>Profile & Account</span>
               </Link>
-              <Link href="/settings" className="flex items-center space-x-2 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">
+
+              <Link href="/settings" onClick={() => setProfileDropdownOpen(false)} className="flex items-center space-x-2 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">
                 <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 <span>Operational Settings</span>
               </Link>
+
+              <div className="px-4 py-2">
+                <InstallAppButton variant="full" />
+              </div>
+
               <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+
               <button
-                onClick={() => logout()}
+                onClick={() => {
+                  setProfileDropdownOpen(false);
+                  logout();
+                }}
                 className="w-full text-left flex items-center space-x-2 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
