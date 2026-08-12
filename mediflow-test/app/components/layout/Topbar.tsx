@@ -148,10 +148,6 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
                 <span>Operational Settings</span>
               </Link>
 
-              <div className="px-4 py-2">
-                <InstallAppButton variant="full" />
-              </div>
-
               <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
 
               <button

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "../brand/Logo";
-import { InstallAppButton } from "../ui/InstallAppButton";
 import { NAV_GROUPS } from "./navConfig";
 import { HOSPITAL_SHORT_NAME } from "@/lib/config/hospital";
 
@@ -70,11 +69,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           <div className="text-xs font-extrabold text-white truncate">{HOSPITAL_SHORT_NAME}</div>
           <div className="text-[10px] text-slate-300 truncate font-semibold">Main Campus · Org-01</div>
         </div>
-      </div>
-
-      {/* Install App Mobile / Tablet Button */}
-      <div className="mx-3 mb-2">
-        <InstallAppButton variant="full" />
       </div>
 
       {/* Navigation Items */}
