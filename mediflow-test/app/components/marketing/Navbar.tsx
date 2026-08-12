@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Logo } from "../brand/Logo";
 import { useAuth } from "@/lib/auth-context";
-import { InstallAppButton } from "../ui/InstallAppButton";
 
 const LINKS = [
   { label: "Home", href: "#hero" },
@@ -190,11 +189,6 @@ export function Navbar() {
             </div>
 
             <div className="flex flex-col space-y-3 pt-6 mt-6 border-t border-white/10 shrink-0">
-              {/* Install App Option in Mobile Menu */}
-              <div className="flex justify-center w-full">
-                <InstallAppButton variant="full" />
-              </div>
-
               {user ? (
                 <Link
                   href="/dashboard"

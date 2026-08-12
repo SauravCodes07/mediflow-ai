@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { useTheme } from "@/lib/theme-context";
 import { Logo } from "@/app/components/brand/Logo";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -11,6 +12,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function SignupPage() {
   const router = useRouter();
   const { signup, loginWithGoogle } = useAuth();
+  const { isDark } = useTheme();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -63,15 +65,15 @@ export default function SignupPage() {
       {/* Header */}
       <div className="space-y-2">
         <div className="mb-4">
-          <Logo size="sm" variant="light" showTagline={false} />
+          <Logo size="sm" variant={isDark ? "dark" : "light"} showTagline={false} />
         </div>
-        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Create your Mediflow-AI account</h2>
-        <p className="text-xs text-slate-500 font-medium">Connect your hospital operations to one intelligent platform.</p>
+        <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Create your Mediflow-AI account</h2>
+        <p className="text-xs text-slate-600 dark:text-[#9DB7D3] font-medium">Connect your hospital operations to one intelligent platform.</p>
       </div>
 
       {/* Error Alert */}
       {error && (
-        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-start space-x-2">
+        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 dark:bg-rose-950/40 dark:border-rose-800 dark:text-rose-300 text-xs font-medium flex items-start space-x-2">
           <span className="font-bold shrink-0">⚠</span>
           <span>{error}</span>
         </div>
@@ -80,7 +82,7 @@ export default function SignupPage() {
       {/* Form Fields */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1">
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider" htmlFor="name">
+          <label className="block text-xs font-bold text-slate-700 dark:text-[#9DB7D3] uppercase tracking-wider" htmlFor="name">
             Full Name
           </label>
           <input
@@ -96,10 +98,10 @@ export default function SignupPage() {
 
         <div className="space-y-1">
           <div className="flex justify-between items-center">
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider" htmlFor="email">
+            <label className="block text-xs font-bold text-slate-700 dark:text-[#9DB7D3] uppercase tracking-wider" htmlFor="email">
               Work Email
             </label>
-            {emailError && <span className="text-[11px] font-bold text-rose-600">{emailError}</span>}
+            {emailError && <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400">{emailError}</span>}
           </div>
           <input
             id="email"
@@ -113,7 +115,7 @@ export default function SignupPage() {
         </div>
 
         <div className="space-y-1">
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider" htmlFor="password">
+          <label className="block text-xs font-bold text-slate-700 dark:text-[#9DB7D3] uppercase tracking-wider" htmlFor="password">
             Password
           </label>
           <input
@@ -130,7 +132,7 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={loading || Boolean(emailError)}
-          className="w-full h-13 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-md transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+          className="w-full h-13 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-md transition-all disabled:opacity-50 flex items-center justify-center space-x-2 cursor-pointer"
         >
           <span>{loading ? "Creating Account..." : "Create Account"}</span>
           {!loading && <span>→</span>}
@@ -139,9 +141,9 @@ export default function SignupPage() {
 
       {/* Divider */}
       <div className="flex items-center space-x-3 my-4">
-        <div className="flex-1 h-px bg-slate-200" />
-        <span className="text-xs text-slate-400 font-semibold uppercase">Or</span>
-        <div className="flex-1 h-px bg-slate-200" />
+        <div className="flex-1 h-px bg-slate-200 dark:bg-[#1E3B60]" />
+        <span className="text-xs text-slate-400 dark:text-[#8AA8CB] font-semibold uppercase">Or</span>
+        <div className="flex-1 h-px bg-slate-200 dark:bg-[#1E3B60]" />
       </div>
 
       {/* Google Sign-up */}
@@ -149,7 +151,7 @@ export default function SignupPage() {
         type="button"
         onClick={handleGoogle}
         disabled={loading}
-        className="w-full h-13 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm shadow-sm transition-all flex items-center justify-center space-x-3 disabled:opacity-50"
+        className="w-full h-13 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-semibold text-sm shadow-sm transition-all flex items-center justify-center space-x-3 disabled:opacity-50 cursor-pointer"
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -161,9 +163,9 @@ export default function SignupPage() {
       </button>
 
       {/* Footer Toggle */}
-      <div className="text-center text-xs text-slate-500 font-medium pt-2">
+      <div className="text-center text-xs text-slate-600 dark:text-[#9DB7D3] font-medium pt-2">
         Already have an account?{" "}
-        <Link href="/login" className="font-bold text-blue-600 hover:underline">
+        <Link href="/login" className="font-bold text-blue-600 dark:text-blue-400 hover:underline">
           Sign in
         </Link>
       </div>

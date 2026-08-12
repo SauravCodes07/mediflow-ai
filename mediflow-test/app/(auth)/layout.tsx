@@ -4,7 +4,6 @@ import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "../components/brand/Logo";
-import { InstallAppButton } from "../components/ui/InstallAppButton";
 import { useTheme } from "@/lib/theme-context";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
@@ -66,7 +65,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
               alt="Mediflow Hospital Environment"
               className="w-full h-full object-cover object-center lg:object-[center_35%] scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-[#071B34] via-[#071B34]/85 to-[#071B34]/40" />
+            <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-[#061325]/90 via-[#061325]/40 to-transparent" />
           </div>
 
           {/* Bottom Hero Overlay Content */}
@@ -101,8 +100,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         </div>
 
         {/* RIGHT COLUMN: High-Contrast Auth Card Container (45% Desktop) */}
-        <div className="flex-1 min-h-[calc(100vh-280px)] lg:min-h-[calc(100vh-57px)] bg-slate-50 dark:bg-[#041226] flex items-center justify-center p-4 sm:p-8 lg:p-12">
-          <div className="w-full max-w-[430px] bg-white dark:bg-[#0B2545] rounded-3xl p-6 sm:p-10 shadow-2xl border border-slate-200 dark:border-slate-800">
+        <div className="flex-1 min-h-[calc(100vh-280px)] lg:min-h-[calc(100vh-57px)] bg-slate-50 dark:bg-[#061427] flex items-center justify-center p-4 sm:p-8 lg:p-12">
+          <div className="w-full max-w-[430px] bg-white dark:bg-[#102B4D] rounded-3xl p-6 sm:p-10 shadow-2xl border border-slate-200 dark:border-[#1E406D]">
             {children}
           </div>
         </div>

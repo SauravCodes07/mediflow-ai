@@ -347,3 +347,53 @@ svg {
     padding-bottom: 96px;
   }
 }
+
+/* Authentication Form Inputs */
+.auth-input {
+  width: 100%;
+  height: 3.25rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.2s ease;
+  background-color: #0A1E38;
+  color: #FFFFFF !important;
+  border: 1px solid #20426E;
+}
+
+.auth-input::placeholder {
+  color: #7A96B8;
+  opacity: 1;
+}
+
+.auth-input:focus {
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  background-color: #0D2545;
+}
+
+:root.light .auth-input,
+html.light .auth-input,
+body.light .auth-input {
+  background-color: #FFFFFF;
+  color: #0F172A !important;
+  border: 1px solid #CBD5E1;
+}
+
+:root.light .auth-input::placeholder,
+html.light .auth-input::placeholder,
+body.light .auth-input::placeholder {
+  color: #94A3B8;
+}
+
+:root.light .auth-input:focus,
+html.light .auth-input:focus,
+body.light .auth-input:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  background-color: #FFFFFF;
+}
+

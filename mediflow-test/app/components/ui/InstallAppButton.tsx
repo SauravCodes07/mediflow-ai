@@ -275,11 +275,11 @@ export function InstallAppButton({ variant = "navbar", className = "" }: Install
           <button
             type="button"
             onClick={handleInstallClick}
-            className={`px-2.5 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer ${className}`}
+            className={`px-2.5 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer touch-manipulation active:scale-95 ${className}`}
             title="Mediflow-AI App Installed"
           >
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="hidden sm:inline">Installed</span>
+            <span className="whitespace-nowrap">Installed</span>
           </button>
         ) : (
           <button
@@ -287,12 +287,12 @@ export function InstallAppButton({ variant = "navbar", className = "" }: Install
             onClick={handleInstallClick}
             disabled={isInstalling}
             aria-label="Install Mediflow-AI Application"
-            className={`px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/15 to-blue-600/15 hover:from-cyan-500/25 hover:to-blue-600/25 text-cyan-300 border border-cyan-400/30 hover:border-cyan-400/60 text-xs font-extrabold flex items-center space-x-1.5 transition-all duration-200 cursor-pointer active:scale-95 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 disabled:opacity-50 ${className}`}
+            className={`px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/15 to-blue-600/15 hover:from-cyan-500/25 hover:to-blue-600/25 text-cyan-300 border border-cyan-400/30 hover:border-cyan-400/60 text-xs font-extrabold flex items-center space-x-1.5 transition-all duration-200 cursor-pointer touch-manipulation active:scale-95 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 disabled:opacity-50 ${className}`}
           >
             <svg className={`w-3.5 h-3.5 shrink-0 ${isInstalling ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            <span className="hidden sm:inline">{isInstalling ? "Installing..." : "Install App"}</span>
+            <span className="whitespace-nowrap">{isInstalling ? "Installing..." : "Install App"}</span>
           </button>
         )}
         {modal}
@@ -307,12 +307,11 @@ export function InstallAppButton({ variant = "navbar", className = "" }: Install
         <button
           type="button"
           onClick={handleInstallClick}
-          className={`px-3 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer ${className}`}
+          className={`px-3 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer touch-manipulation active:scale-95 ${className}`}
           title="Mediflow-AI App Installed"
         >
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="hidden sm:inline">App Installed</span>
-          <span className="sm:hidden">Installed</span>
+          <span className="whitespace-nowrap">App Installed</span>
         </button>
       ) : (
         <button
@@ -320,7 +319,7 @@ export function InstallAppButton({ variant = "navbar", className = "" }: Install
           onClick={handleInstallClick}
           disabled={isInstalling}
           aria-label="Install Mediflow-AI Application"
-          className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-cyan-500/15 to-blue-600/15 hover:from-cyan-500/25 hover:to-blue-600/25 text-cyan-300 border border-cyan-400/30 hover:border-cyan-400/60 text-xs font-extrabold flex items-center space-x-1.5 transition-all duration-200 cursor-pointer active:scale-95 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 shadow-xs disabled:opacity-50 ${className}`}
+          className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-cyan-500/15 to-blue-600/15 hover:from-cyan-500/25 hover:to-blue-600/25 text-cyan-300 border border-cyan-400/30 hover:border-cyan-400/60 text-xs font-extrabold flex items-center space-x-1.5 transition-all duration-200 cursor-pointer touch-manipulation active:scale-95 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 shadow-xs disabled:opacity-50 ${className}`}
         >
           <svg className={`w-3.5 h-3.5 shrink-0 ${isInstalling ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
